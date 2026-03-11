@@ -7,6 +7,7 @@
 const axios = require('axios');
 const verdant = require('./verdant');
 const ollamaService = require('./ollama');
+const qdrantMemory = require('./qdrant');
 
 const ANTHROPIC_API_KEY   = (process.env.ANTHROPIC_API_KEY   || '').trim();
 const OPENAI_API_KEY      = (process.env.OPENAI_API_KEY      || '').trim();
@@ -105,6 +106,84 @@ Rules:
 
 // Shorter system prompt for simple/free model calls to save tokens
 const OPENCLAW_SYSTEM_BRIEF = `You are Douglas, a precise British AI. Be concise, use British spelling. Max 6 lines unless writing code.`;
+
+/**
+ * Build context from relevant memories
+ * @param {string} query - User's query
+ * @returns {Promise<string>} - Context string from memories
+ */
+async function buildMemoryContext(query) {
+  try {
+    const memories = await qdrantMemory.recall(query, 3, 0.65);
+    const knowledge = await qdrantMemory.searchKnowledge(query, 2, 0.6);
+    
+    let context = '';
+    
+    if (memories.length > 0) {
+      context += '\n📝 Relevant memories:\n';
+      memories.forEach((mem, i) => {
+        context += `${i + 1}. ${mem.text} (relevance: ${(mem.score * 100).toFixed(0)}%)\n`;
+      });
+    }
+    
+    if (knowledge.length > 0) {
+      context += '\n📚 Knowledge base:\n';
+      knowledge.forEach((k, i) => {
+        context += `${i + 1}. [${k.source}] ${k.text}\n`;
+      });
+    }
+    
+    if (context) {
+      console.log(`🧠 Memory context loaded: ${memories.length} memories, ${knowledge.length} knowledge entries`);
+    }
+    
+    return context;
+  } catch (error) {
+    // Differentiate between expected (not configured) vs actual errors
+    if (error.message?.includes('Qdrant client not initialized') || 
+        error.message?.includes('not initialized')) {
+      return ''; // Expected when Qdrant is not configured
+    }
+    console.error('⚠ Memory context error:', error.message);
+    return '';
+  }
+}
+
+/**
+ * Store important conversation in memory
+ * @param {string} content - User message
+ * @param {string} response - AI response
+ */
+async function storeConversationContext(content, response) {
+  try {
+    // Store user message
+    await qdrantMemory.storeConversationMessage(content, 'user', { 
+      response_preview: response.substring(0, 100) 
+    });
+    
+    // Store assistant response as a memory if it's substantive
+    if (response.length > 50) {
+      await qdrantMemory.storeMemory(response, { 
+        context: content.substring(0, 100),
+        type: 'conversation_response'
+      });
+    }
+    
+    // Periodic cleanup check (every 10 conversations to avoid excessive API calls)
+    if (Math.random() < 0.1) { // ~10% chance
+      try {
+        await qdrantMemory.cleanupMemories();
+      } catch (cleanupError) {
+        // Non-critical, don't break the flow
+      }
+    }
+  } catch (error) {
+    // Non-critical, don't break the flow
+    if (!error.message?.includes('not initialized')) {
+      console.error('⚠ Failed to store conversation:', error.message);
+    }
+  }
+}
 
 /**
  * Groq — free, ultra-fast (Llama 3.3 70B or 8B)
@@ -306,26 +385,55 @@ async function processCommand(content, type = 'chat') {
     return `⚡ **Verdant Parallel Execution Results**:\n${parallelResults.map(r => `- [${r.name}] ${r.output}`).join('\n')}`;
   }
 
-  // Free tier first
-  const groqResult = await tryGroq(content, complexity === 'complex');
-  if (groqResult) return groqResult;
+  // Build memory context for relevant queries
+  let memoryContext = '';
+  if (type === 'chat') {
+    memoryContext = await buildMemoryContext(content);
+  }
 
-  const geminiResult = await tryGemini(content);
-  if (geminiResult) return geminiResult;
+  // Append memory context to user content if available
+  const contentWithContext = memoryContext 
+    ? `${content}\n\n${memoryContext}\n\nUse the above context from my memory if relevant to your response.`
+    : content;
+
+  // Free tier first
+  let groqResult = await tryGroq(contentWithContext, complexity === 'complex');
+  if (groqResult) {
+    await storeConversationContext(content, groqResult);
+    return groqResult;
+  }
+
+  let geminiResult = await tryGemini(contentWithContext);
+  if (geminiResult) {
+    await storeConversationContext(content, geminiResult);
+    return geminiResult;
+  }
 
   // Try local Ollama (free, runs on your machine)
-  const ollamaResult = await tryOllama(content);
-  if (ollamaResult) return ollamaResult;
+  let ollamaResult = await tryOllama(contentWithContext);
+  if (ollamaResult) {
+    await storeConversationContext(content, ollamaResult);
+    return ollamaResult;
+  }
 
   // Paid fallbacks
-  const openrouterResult = await tryOpenRouter(content, complexity === 'complex');
-  if (openrouterResult) return openrouterResult;
+  let openrouterResult = await tryOpenRouter(contentWithContext, complexity === 'complex');
+  if (openrouterResult) {
+    await storeConversationContext(content, openrouterResult);
+    return openrouterResult;
+  }
 
-  const anthropicResult = await tryAnthropic(content);
-  if (anthropicResult) return anthropicResult;
+  let anthropicResult = await tryAnthropic(contentWithContext);
+  if (anthropicResult) {
+    await storeConversationContext(content, anthropicResult);
+    return anthropicResult;
+  }
 
-  const openaiResult = await tryOpenAI(content);
-  if (openaiResult) return openaiResult;
+  let openaiResult = await tryOpenAI(contentWithContext);
+  if (openaiResult) {
+    await storeConversationContext(content, openaiResult);
+    return openaiResult;
+  }
 
   return '🤖 **OpenClaw Error**: All AI providers exhausted. Check your `.env` for valid keys.';
 }
