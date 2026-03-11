@@ -1,0 +1,458 @@
+/* Particle Explosion Intro - Futuristic Burst Effect */
+#intro-overlay {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100vw; height: 100vh;
+  background: #000;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+/* Particle system container */
+.particles-container {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+/* Individual particle */
+.particle-burst {
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  opacity: 0;
+}
+
+/* Particle colors - cyan/magenta/white mix */
+.particle-burst.cyan {
+  background: #00f2ff;
+  box-shadow: 0 0 6px #00f2ff, 0 0 12px #00f2ff;
+}
+
+.particle-burst.magenta {
+  background: #ff00ff;
+  box-shadow: 0 0 6px #ff00ff, 0 0 12px #ff00ff;
+}
+
+.particle-burst.white {
+  background: #ffffff;
+  box-shadow: 0 0 6px #ffffff, 0 0 12px #ffffff;
+}
+
+/* Particle explosion animation */
+.particle-burst.explode {
+  animation: particle-explode 2s cubic-bezier(0.1, 0.9, 0.2, 1) forwards;
+}
+
+@keyframes particle-explode {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0);
+  }
+  10% {
+    opacity: 1;
+    transform: translate(var(--tx), var(--ty)) scale(1);
+  }
+  80% {
+    opacity: 0.8;
+  }
+  100% {
+    opacity: 0;
+    transform: translate(var(--tx), var(--ty)) scale(0.5);
+  }
+}
+
+/* Logo container */
+.logo-container {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  opacity: 0;
+  transform: scale(0.3);
+}
+
+/* Logo reveal animation */
+.logo-container.reveal {
+  animation: logo-reveal 1.5s cubic-bezier(0.34, 1.56, 0.64, 1) 1.8s forwards;
+}
+
+@keyframes logo-reveal {
+  0% {
+    opacity: 0;
+    transform: scale(0.3) rotate(-10deg);
+    filter: blur(20px);
+  }
+  50% {
+    opacity: 1;
+    filter: blur(2px);
+  }
+  70% {
+    transform: scale(1.1) rotate(2deg);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) rotate(0deg);
+    filter: blur(0);
+  }
+}
+
+/* Main logo text */
+.logo-text {
+  font-family: 'Courier New', monospace;
+  font-size: clamp(3rem, 10vw, 8rem);
+  font-weight: 900;
+  color: #fff;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  position: relative;
+  text-shadow: 
+    0 0 20px #00f2ff,
+    0 0 40px #00f2ff,
+    0 0 60px #00f2ff;
+}
+
+/* Glow behind logo */
+.logo-glow {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 150%;
+  height: 150%;
+  background: radial-gradient(ellipse, rgba(0, 242, 255, 0.3) 0%, transparent 60%);
+  z-index: -1;
+  animation: glow-pulse 2s ease-in-out infinite;
+}
+
+@keyframes glow-pulse {
+  0%, 100% { opacity: 0.5; transform: translate(-50%, -50%) scale(1); }
+  50% { opacity: 0.8; transform: translate(-50%, -50%) scale(1.2); }
+}
+
+/* Tagline */
+.logo-tagline {
+  font-family: 'Courier New', monospace;
+  font-size: clamp(0.6rem, 1.5vw, 1rem);
+  color: #00f2ff;
+  text-transform: uppercase;
+  letter-spacing: 0.6em;
+  opacity: 0;
+  transform: translateY(20px);
+}
+
+.logo-tagline.show {
+  animation: tagline-appear 1s ease-out 2.5s forwards;
+}
+
+@keyframes tagline-appear {
+  0% {
+    opacity: 0;
+    transform: translateY(20px);
+    filter: blur(10px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+    filter: blur(0);
+  }
+}
+
+/* Center burst effect */
+.center-burst {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 10px;
+  height: 10px;
+  background: #fff;
+  border-radius: 50%;
+  box-shadow: 
+    0 0 20px #00f2ff,
+    0 0 40px #00f2ff,
+    0 0 80px #ff00ff;
+}
+
+.center-burst.flash {
+  animation: center-flash 1.5s ease-out forwards;
+}
+
+@keyframes center-flash {
+  0% {
+    transform: translate(-50%, -50%) scale(0);
+    opacity: 1;
+  }
+  20% {
+    transform: translate(-50%, -50%) scale(50);
+    opacity: 0.8;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(100);
+    opacity: 0;
+  }
+}
+
+/* Secondary particle rings */
+.particle-ring {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  border: 2px solid #00f2ff;
+  border-radius: 50%;
+  opacity: 0;
+}
+
+.particle-ring.expand {
+  animation: ring-expand 2s ease-out forwards;
+}
+
+.particle-ring:nth-child(1) { animation-delay: 0s; }
+.particle-ring:nth-child(2) { animation-delay: 0.3s; }
+.particle-ring:nth-child(3) { animation-delay: 0.6s; }
+
+@keyframes ring-expand {
+  0% {
+    width: 0;
+    height: 0;
+    opacity: 1;
+    border-width: 3px;
+  }
+  100% {
+    width: 600px;
+    height: 600px;
+    opacity: 0;
+    border-width: 0px;
+  }
+}
+
+/* Orbital particles */
+.orbital {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 6px;
+  height: 6px;
+  background: #ff00ff;
+  border-radius: 50%;
+  box-shadow: 0 0 10px #ff00ff;
+}
+
+.orbital.orbit-1 {
+  animation: orbit 3s linear infinite;
+}
+
+.orbital.orbit-2 {
+  animation: orbit 3s linear infinite reverse;
+  background: #00f2ff;
+  box-shadow: 0 0 10px #00f2ff;
+  animation-duration: 4s;
+}
+
+@keyframes orbit {
+  0% {
+    transform: rotate(0deg) translateX(100px) rotate(0deg);
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+  }
+  90% {
+    opacity: 1;
+  }
+  100% {
+    transform: rotate(360deg) translateX(100px) rotate(-360deg);
+    opacity: 0;
+  }
+}
+
+/* Background stars */
+.star-field {
+  position: absolute;
+  inset: 0;
+}
+
+.star {
+  position: absolute;
+  width: 2px;
+  height: 2px;
+  background: #fff;
+  border-radius: 50%;
+  animation: twinkle 2s ease-in-out infinite;
+}
+
+@keyframes twinkle {
+  0%, 100% { opacity: 0.3; }
+  50% { opacity: 1; }
+}
+
+/* Entrance animation - particles rushing in */
+.particle-entrance {
+  position: absolute;
+  width: 3px;
+  height: 3px;
+  background: #00f2ff;
+  border-radius: 50%;
+  opacity: 0;
+}
+
+.particle-entrance.rush {
+  animation: rush-in 1.5s cubic-bezier(0.1, 0.8, 0.2, 1) forwards;
+}
+
+@keyframes rush-in {
+  0% {
+    opacity: 0;
+    transform: translate(var(--start-x), var(--start-y)) scale(0);
+  }
+  30% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translate(0, 0) scale(1);
+  }
+}
+
+/* Loading progress bar */
+.load-bar {
+  position: absolute;
+  bottom: 80px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 150px;
+  height: 2px;
+  background: rgba(255, 255, 255, 0.1);
+  overflow: hidden;
+}
+
+.load-bar::after {
+  content: '';
+  position: absolute;
+  width: 30%;
+  height: 100%;
+  background: linear-gradient(90deg, #00f2ff, #ff00ff);
+  box-shadow: 0 0 10px #00f2ff;
+  animation: load-slide 1s ease-in-out infinite;
+}
+
+@keyframes load-slide {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(400%); }
+}
+
+/* Corner accents */
+.corner-accents {
+  position: absolute;
+  inset: 20px;
+  pointer-events: none;
+}
+
+.corner-line {
+  position: absolute;
+  width: 30px;
+  height: 30px;
+  border-color: rgba(0, 242, 255, 0.5);
+  border-style: solid;
+  border-width: 0;
+  opacity: 0;
+}
+
+.corner-line.show {
+  animation: corner-draw 0.5s ease-out forwards;
+}
+
+.corner-line.top-left {
+  top: 0; left: 0;
+  border-top-width: 2px;
+  border-left-width: 2px;
+}
+
+.corner-line.top-right {
+  top: 0; right: 0;
+  border-top-width: 2px;
+  border-right-width: 2px;
+}
+
+.corner-line.bottom-left {
+  bottom: 0; left: 0;
+  border-bottom-width: 2px;
+  border-left-width: 2px;
+}
+
+.corner-line.bottom-right {
+  bottom: 0; right: 0;
+  border-bottom-width: 2px;
+  border-right-width: 2px;
+}
+
+@keyframes corner-draw {
+  0% { opacity: 0; }
+  100% { opacity: 0.7; }
+}
+
+/* Intro exit - explosion outward */
+#intro-overlay.blast-off {
+  animation: blast-exit 1s ease-in forwards;
+}
+
+@keyframes blast-exit {
+  0% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  30% {
+    transform: scale(1.1);
+    filter: brightness(2);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(3);
+    filter: brightness(0);
+  }
+}
+
+/* Text scramble effect */
+.scramble-text {
+  display: inline-block;
+}
+
+.scramble-text.scrambling {
+  animation: scramble 0.1s steps(5) infinite;
+}
+
+@keyframes scramble {
+  0% { transform: translateY(0); }
+  25% { transform: translateY(-2px); }
+  50% { transform: translateY(2px); }
+  75% { transform: translateY(-1px); }
+  100% { transform: translateY(0); }
+}
+
+/* Trail effect */
+.trail-particle {
+  position: absolute;
+  width: 2px;
+  height: 2px;
+  background: #00f2ff;
+  border-radius: 50%;
+  opacity: 0;
+  animation: trail 0.5s ease-out forwards;
+}
+
+@keyframes trail {
+  0% {
+    opacity: 0.8;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(0);
+  }
+}

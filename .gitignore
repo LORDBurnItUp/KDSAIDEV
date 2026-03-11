@@ -1,0 +1,55 @@
+# OS and IDE files
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
+desktop.ini
+
+# Node
+node_modules/
+npm-debug.log
+yarn-error.log
+yarn-debug.log*
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+*.egg-info/
+.eggs/
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# IDE
+.idea/
+*.sublime-*
+.vscode/
+*.code-workspace
+
+# Claude
+.claude/
+
+# Misc
+*.log
+coverage/
+dist/
+build/
+tmp/
+
+# Windows specific
+$RECYCLE.BIN/
+System Volume Information/
+*.lnk
+
+# Project specific
+node_modules/
+.venv/
+venv/
+*.zip
+*.rar
