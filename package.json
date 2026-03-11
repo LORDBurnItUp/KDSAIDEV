@@ -16,9 +16,6 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "@mariozechner/pi-agent-core": "^0.57.1",
-    "@mariozechner/pi-ai": "^0.57.1",
-    "@mariozechner/pi-coding-agent": "^0.57.1",
     "@supabase/supabase-js": "^2.99.0",
     "axios": "^1.6.0",
     "discord.js": "^14.25.1",
