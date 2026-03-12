@@ -43,6 +43,18 @@ app.get('/health', (req, res) => {
 // API Routes
 app.use('/api', apiService.router);
 
+// Auto-Activate OS Voice Endpoint
+app.post('/api/activate-voice', async (req, res) => {
+  try {
+    const voice = require('./services/voice');
+    await voice.speak("System initialized. Antigravity online. Welcome back to the Hub, Architect.");
+    res.json({ success: true, message: "Voice activated locally." });
+  } catch (err) {
+    console.error("Voice Activation Error:", err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // Command Center Dashboard
 app.use('/dashboard', dashboard);
 

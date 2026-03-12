@@ -612,6 +612,12 @@
         document.addEventListener('DOMContentLoaded', () => {
             showNextBootMessage();
             addMapPings();
+
+            // Auto-Activate OS Voice via Backend Trigger
+            fetch('/api/activate-voice', { method: 'POST' })
+                .then(res => res.json())
+                .then(data => console.log("[ANTIGRAVITY] Voice Engine Online", data))
+                .catch(err => console.error("[ANTIGRAVITY] Voice Engine Offline", err));
         });
 
         // --- Random Pings on Map ---
