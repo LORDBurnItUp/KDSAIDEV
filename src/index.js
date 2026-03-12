@@ -23,6 +23,7 @@ const apiService      = require('./services/api');
 const authService     = require('./services/auth');
 const discordService  = require('./services/discord');
 const heartbeat       = require('./services/heartbeat');
+const autoRepair      = require('./services/auto-repair');
 const dashboard       = require('./dashboard');
 
 // Serve static assets
@@ -85,6 +86,9 @@ async function startServer() {
       
       // Start heartbeat (proactive AI assistant)
       heartbeat.start();
+
+      // Start Auto-Repair System
+      autoRepair.start();
     }
 
     // Start Express server
@@ -106,3 +110,5 @@ process.on('SIGTERM', async () => {
 });
 
 startServer();
+
+module.exports = app;
