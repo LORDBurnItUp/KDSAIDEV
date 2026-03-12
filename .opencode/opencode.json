@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "google_keep": {
+      "command": "node",
+      "args": ["src/services/googlekeep-server.js"]
+    }
+  }
+}

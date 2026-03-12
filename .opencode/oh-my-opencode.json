@@ -1,0 +1,22 @@
+{
+  "$schema": "https://raw.githubusercontent.com/code-yeongyu/oh-my-opencode/dev/assets/oh-my-opencode.schema.json",
+  "default_run_agent": "antigravity",
+  "agents": {
+    "antigravity": {
+      "model": "claude-3-5-sonnet-20241022",
+      "category": "omni",
+      "mode": "all",
+      "description": "Antigravity - The ultimate AI orchestrator and main default extension. Capable of coding, organizing Google Keep notes, and orchestrating full development pipelines.",
+      "permission": {
+        "edit": "allow",
+        "bash": "ask",
+        "webfetch": "allow",
+        "task": "allow",
+        "external_directory": "ask"
+      },
+      "tools": {
+        "google_keep": true
+      }
+    }
+  }
+}
