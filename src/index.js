@@ -55,6 +55,11 @@ app.post('/api/activate-voice', async (req, res) => {
   }
 });
 
+// --- CONTENT LAB ---
+app.get('/lab/prompter', (req, res) => {
+  res.sendFile(path.join(__dirname, 'pages', 'prompter.html'));
+});
+
 // Command Center Dashboard
 app.use('/dashboard', dashboard);
 

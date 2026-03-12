@@ -16,4 +16,7 @@
 ## 🧪 CURRENT CHECKLIST
 - [x] Initialized B.L.A.S.T. Directory Structure
 - [x] Created `claude.md` Constitution
-- [ ] Complete Discovery Questions
+- [x] Map Codebase and Architecture (`architecture/codebase_map.md`)
+- [x] Implement High-End Scroll-Stop Prompter (`/lab/prompter`)
+- [ ] **Google Keep Connection:** Run `node src/services/googlekeep.js --auth` to link the Second Brain.
+- [ ] Organize and Categorize Google Keep Notes (Awaiting Auth).
