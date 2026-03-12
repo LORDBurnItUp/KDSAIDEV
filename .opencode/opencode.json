@@ -7,6 +7,12 @@
     "voice_system": {
       "command": "node",
       "args": ["src/services/voice-server.js"]
+    },
+    "stitch": {
+      "serverUrl": "https://stitch.googleapis.com/mcp",
+      "headers": {
+        "X-Goog-Api-Key": "AIzaSyBAW59fiZT4ZKywA-ZJCEbedKrsXKbXcfk"
+      }
     }
   }
 }
