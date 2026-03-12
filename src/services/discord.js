@@ -3,7 +3,7 @@
  * Handles Discord bot interaction, webhooks, and AI chat listeners
  */
 
-const { Client, GatewayIntentBits, Partials, EmbedBuilder, Events } = require('discord.js');
+const { Client, Intents, MessageEmbed, Events } = require('discord.js');
 const axios = require('axios');
 const openclawService = require('./openclaw');
 const voiceService = require('./voice');
@@ -33,19 +33,16 @@ async function initialize() {
   }
 
   try {
-    const intents = [
-      GatewayIntentBits.Guilds,
-      GatewayIntentBits.GuildMessages,
-      GatewayIntentBits.DirectMessages,
-      GatewayIntentBits.MessageContent, // Required to read message text — must be enabled in Dev Portal
-    ];
-
     client = new Client({
-      intents,
-      partials: [Partials.Channel, Partials.Message],
+      intents: [
+        Intents.FLAGS.GUILDS,
+        Intents.FLAGS.GUILD_MESSAGES,
+        Intents.FLAGS.DIRECT_MESSAGES
+      ],
+      partials: ['CHANNEL', 'MESSAGE'],
     });
 
-    client.once(Events.ClientReady, async () => {
+    client.once('ready', async () => {
       isReady = true;
       console.log(`🤖 Discord bot logged in as ${client.user.tag}`);
       

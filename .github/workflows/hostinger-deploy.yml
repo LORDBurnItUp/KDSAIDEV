@@ -1,0 +1,21 @@
+name: Hostinger Deployment
+
+on:
+  workflow_dispatch: # Allows manual trigger for "one-hit" production deployment
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.HOSTINGER_IP }}
+          username: ${{ secrets.HOSTINGER_USERNAME }}
+          password: ${{ secrets.HOSTINGER_PASSWORD }}
+          script: |
+            cd /var/www/KFEAIDEV
+            git pull origin main
+            npm install --production
+            pm2 restart KFEAIDEV || pm2 start src/index.js --name "KFEAIDEV"
+            pm2 save
