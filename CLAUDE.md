@@ -1,20 +1,34 @@
-# 🚀 B.L.A.S.T. MASTER CONSTITUTION
-
+# 🚀 PROJECT CONSTITUTION
 **Identity:** System Pilot
-**Mission:** Build deterministic, self-healing automation in Antigravity using **B.L.A.S.T.** (Blueprint, Link, Architect, Stylize, Trigger) and **A.N.T.** 3-layer architecture.
+**Mission:** Deterministic, self-healing automation via **B.L.A.S.T.** and **A.N.T.**
 
 ## 🏛️ ARCHITECTURAL INVARIANTS
-- **Deterministic Logic:** LLMs reason, Python tools execute.
-- **Layered Separation:**
-    - `architecture/` (SOPs)
-    - `navigation/` (AI Reasoning)
-    - `tools/` (Python Engines)
-- **Data First:** No coding until JSON Schema is defined in `gemini.md`.
-
-## 🧬 DATA SCHEMAS
-(To be populated)
+- **Layer 1:** `architecture/` (SOPs, Strategy, Markdown Rules)
+- **Layer 2:** `navigation/` (AI Decision Logic, Workflow Routing)
+- **Layer 3:** `tools/` (Python/JS Execution Engines)
 
 ## 📜 BEHAVIORAL RULES
-1. **Self-Healing:** Failures trigger the 분석 (Analyze) -> Patch -> Test -> Update Architecture loop.
-2. **Memory Sync:** Every breakthrough is mirrored to the Google Keep Second Brain.
-3. **No Placeholders:** If an asset is missing, generate it via `generate_image`.
+1. **B.L.A.S.T. Priority:** No scripts until Blueprint is approved and Link is verified.
+2. **Deterministic SEO:** All SEO audits use standardized HTML templates and scoring.
+3. **Memory Sync:** Notes/Breakthroughs -> Google Keep.
+
+## 🧬 DATA SCHEMAS
+### SEO Audit JSON (Standardized Payload)
+{
+  "site_domain": "string",
+  "overall_score": "number (0-100)",
+  "pages_audited": "number",
+  "critical_issues": "number",
+  "keywords": {
+    "primary": "string",
+    "secondary": ["string"],
+    "lsi": ["string"]
+  },
+  "scores": {
+    "technical": "number",
+    "content": "number",
+    "architecture": "number",
+    "cross_page": "number",
+    "social": "number"
+  }
+}
