@@ -24,6 +24,7 @@ const authService     = require('./services/auth');
 const discordService  = require('./services/discord');
 const heartbeat       = require('./services/heartbeat');
 const autoRepair      = require('./services/auto-repair');
+const projectBrain    = require('./services/project-brain');
 const dashboard       = require('./dashboard');
 
 // Serve static assets
@@ -90,6 +91,13 @@ async function startServer() {
       // Start Auto-Repair System
       autoRepair.start();
     }
+
+    // Seed project brain (non-blocking — runs in background)
+    projectBrain.initProject(
+      'SWAGCLAW',
+      'Advanced AI agency hub with voice capabilities, vector database integration, and multi-model AI orchestration (B.L.A.S.T. framework)',
+      ['ai', 'agency', 'discord', 'qdrant', 'voice']
+    ).catch(err => console.warn('⚠ Project brain seed failed (non-fatal):', err.message));
 
     // Start Express server
     app.listen(PORT, () => {

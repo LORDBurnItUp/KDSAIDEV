@@ -655,6 +655,7 @@
 
         // --- Interaction Effects ---
         const form = document.getElementById('login-form');
+        if (!form) return;
         form.addEventListener('submit', (e) => {
             e.preventDefault();
             const btn = e.target.querySelector('button');
@@ -1124,9 +1125,12 @@
         }
 
         // Attach transition to Core
-        document.getElementById('core-container').style.pointerEvents = 'auto';
-        document.getElementById('core-container').style.cursor = 'pointer';
-        document.getElementById('core-container').onclick = triggerSecondaryDimension;
+        const coreEl = document.getElementById('core-container');
+        if (coreEl) {
+            coreEl.style.pointerEvents = 'auto';
+            coreEl.style.cursor = 'pointer';
+            coreEl.onclick = triggerSecondaryDimension;
+        }
 
         // Telemetry Feed Simulation
         const telemetryMsgs = [

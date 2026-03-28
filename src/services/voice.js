@@ -100,4 +100,18 @@ async function transcribe(filePath) {
     return transcript;
 }
 
-module.exports = { speak, transcribe };
+/**
+ * Clean up a temporary voice file after sending
+ * @param {string} filePath - Path to the audio file to delete
+ */
+async function cleanupVoice(filePath) {
+    try {
+        if (filePath && fs.existsSync(filePath)) {
+            fs.unlinkSync(filePath);
+        }
+    } catch (err) {
+        console.warn('⚠ Could not clean up voice file:', err.message);
+    }
+}
+
+module.exports = { speak, transcribe, cleanupVoice };

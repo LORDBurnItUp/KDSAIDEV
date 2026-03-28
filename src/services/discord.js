@@ -3,7 +3,7 @@
  * Handles Discord bot interaction, webhooks, and AI chat listeners
  */
 
-const { Client, Intents, MessageEmbed, Events } = require('discord.js');
+const { Client, Intents, Events } = require('discord.js');
 const axios = require('axios');
 const openclawService = require('./openclaw');
 const voiceService = require('./voice');
@@ -87,7 +87,7 @@ async function initialize() {
         let cleanContent = message.content.replace(`<@!${client.user.id}>`, '').replace(`<@${client.user.id}>`, '').trim();
         
         // Handle Audio Attachments (STT)
-        const audioAttachment = message.attachments.find(a => a.contentType?.startsWith('audio/') || a.name.endsWith('.mp3') || a.name.endsWith('.wav') || a.name.endsWith('.ogg'));
+        const audioAttachment = message.attachments.find(a => a.contentType?.startsWith('audio/') || a.name?.endsWith('.mp3') || a.name?.endsWith('.wav') || a.name?.endsWith('.ogg'));
         if (audioAttachment) {
           try {
             // Validate URL is from Discord CDN before fetching - use proper URL parsing
@@ -124,7 +124,7 @@ async function initialize() {
               maxContentLength: 10 * 1024 * 1024, // 10MB limit
               maxBodyLength: 10 * 1024 * 1024
             });
-            const transcription = await voiceService.transcribeAudio(Buffer.from(audioResponse.data));
+            const transcription = await voiceService.transcribe(Buffer.from(audioResponse.data));
             if (transcription) {
               console.log(`📝 Transcription: "${transcription}"`);
               cleanContent = `${cleanContent} ${transcription}`.trim();
@@ -153,7 +153,7 @@ async function initialize() {
         if (process.env.ELEVENLABS_API_KEY) {
            // Use a truncated version for voice if the response is very long
            const voiceText = response.length > 500 ? response.substring(0, 500) + '...' : response;
-           voicePath = await voiceService.generateSpeech(voiceText);
+           voicePath = await voiceService.speak(voiceText);
         }
 
         // Send response
@@ -163,7 +163,7 @@ async function initialize() {
             content: response,
             files: [attachment]
           });
-          voiceService.cleanupVoice(voicePath);
+          await voiceService.cleanupVoice(voicePath);
         } else {
           await message.reply(response);
         }

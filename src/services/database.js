@@ -114,5 +114,6 @@ module.exports = {
   connect,
   disconnect,
   getDb,
+  checkConnected,
   isConnected: () => isConnected
 };

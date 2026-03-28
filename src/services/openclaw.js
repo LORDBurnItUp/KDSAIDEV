@@ -376,13 +376,18 @@ async function processCommand(content, type = 'chat') {
   // Parallel Execution Strategy: Verdant
   if (content.toLowerCase().includes('parallel') || content.toLowerCase().includes('simultaneously')) {
     console.log('⚡ Verdant Parallel Mode Activated');
-    // For now, decompose based on common patterns
-    const subTasks = [
-      { name: 'Architect', task: 'Design the logical flow' },
-      { name: 'Engineer', task: 'Implement core functionality' }
-    ];
-    const parallelResults = await verdant.executeParallel(subTasks);
-    return `⚡ **Verdant Parallel Execution Results**:\n${parallelResults.map(r => `- [${r.name}] ${r.output}`).join('\n')}`;
+    try {
+      // For now, decompose based on common patterns
+      const subTasks = [
+        { name: 'Architect', task: 'Design the logical flow' },
+        { name: 'Engineer', task: 'Implement core functionality' }
+      ];
+      const parallelResults = await verdant.executeParallel(subTasks);
+      return `⚡ **Verdant Parallel Execution Results**:\n${parallelResults.map(r => `- [${r.name}] ${r.output}`).join('\n')}`;
+    } catch (err) {
+      console.error('✗ Verdant parallel execution failed:', err.message);
+      // Fall through to standard single-model processing
+    }
   }
 
   // Build memory context for relevant queries
