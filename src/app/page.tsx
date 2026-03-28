@@ -111,54 +111,57 @@ export default function Home() {
       </div>
 
       {/* ==================== HERO SECTION ==================== */}
-      <section className="relative z-10 min-h-screen flex items-center justify-center px-4">
+      <section className="relative z-10 min-h-[200vh] px-4">
         <HeroScene />
 
-        <div className="relative z-10 text-center max-w-5xl mx-auto">
-          {/* Badge */}
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full glass border border-lime/20 mb-8 animate-fade-in">
-            <span className="w-2 h-2 rounded-full bg-lime animate-pulse" />
-            <span className="text-xs font-mono text-lime uppercase tracking-widest">
-              System Online — Year 2130
-            </span>
-          </div>
+        {/* Fixed hero text — stays while content scrolls past */}
+        <div className="sticky top-0 h-screen flex items-center justify-center">
+          <div className="relative z-10 text-center max-w-5xl mx-auto">
+            {/* Badge */}
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full glass border border-lime/20 mb-8 animate-fade-in">
+              <span className="w-2 h-2 rounded-full bg-lime animate-pulse" />
+              <span className="text-xs font-mono text-lime uppercase tracking-widest">
+                System Online — Year 2130
+              </span>
+            </div>
 
-          {/* Main Headline */}
-          <GlitchText
-            text="THE FUTURE IS NOW"
-            tag="h1"
-            className="font-display font-black text-[13vw] sm:text-[10vw] md:text-[8vw] lg:text-[7vw] leading-[0.9] tracking-[-0.04em] mb-6"
-          />
+            {/* Main Headline */}
+            <GlitchText
+              text="THE FUTURE IS NOW"
+              tag="h1"
+              className="font-display font-black text-[13vw] sm:text-[10vw] md:text-[8vw] lg:text-[7vw] leading-[0.9] tracking-[-0.04em] mb-6"
+            />
 
-          <div className="mt-4 mb-8">
-            <span className="font-display font-black text-4xl sm:text-6xl md:text-7xl lg:text-8xl leading-[0.9] tracking-tighter gradient-text-faded">
-              KINGS DRIPPING SWAG
-            </span>
-          </div>
+            <div className="mt-4 mb-8">
+              <span className="font-display font-black text-[10vw] sm:text-[7vw] md:text-[5vw] lg:text-[4vw] leading-[0.9] tracking-[-0.03em] gradient-text-faded">
+                KINGS DRIPPING SWAG
+              </span>
+            </div>
 
-          <p className="text-text-secondary text-lg sm:text-xl max-w-2xl mx-auto mb-12 font-light leading-relaxed animate-fade-in">
-            The AI community hub from another dimension. Build, sell, connect, and earn
-            in the most advanced platform ever created. Welcome to 2130.
-          </p>
+            <p className="text-text-secondary text-lg sm:text-xl max-w-2xl mx-auto mb-12 font-light leading-relaxed animate-fade-in">
+              The AI community hub from another dimension. Build, sell, connect, and earn
+              in the most advanced platform ever created. Welcome to 2130.
+            </p>
 
-          {/* CTA Buttons */}
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 animate-fade-in">
-            <button className="group relative px-8 py-4 rounded-full bg-lime text-void font-display font-bold text-lg hover:shadow-2xl hover:shadow-lime/30 transition-all duration-500 hover:scale-105">
-              <span className="relative z-10">Enter the Portal</span>
-              <div className="absolute inset-0 rounded-full bg-lime opacity-0 group-hover:opacity-100 blur-xl transition-opacity duration-500" />
-            </button>
-            <button className="px-8 py-4 rounded-full glass border border-white/10 font-display font-semibold text-lg hover:border-lime/30 hover:text-lime transition-all duration-300">
-              View the Archive
-            </button>
-          </div>
+            {/* CTA Buttons */}
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 animate-fade-in">
+              <button className="group relative px-8 py-4 rounded-full bg-lime text-void font-display font-bold text-lg hover:shadow-2xl hover:shadow-lime/30 transition-all duration-500 hover:scale-105">
+                <span className="relative z-10">Enter the Portal</span>
+                <div className="absolute inset-0 rounded-full bg-lime opacity-0 group-hover:opacity-100 blur-xl transition-opacity duration-500" />
+              </button>
+              <button className="px-8 py-4 rounded-full glass border border-white/10 font-display font-semibold text-lg hover:border-lime/30 hover:text-lime transition-all duration-300">
+                View the Archive
+              </button>
+            </div>
 
-          {/* Scroll Indicator */}
-          <div className="mt-20 flex flex-col items-center gap-2 animate-fade-in">
-            <span className="text-xs font-mono text-text-muted uppercase tracking-widest">
-              Scroll to explore
-            </span>
-            <div className="w-6 h-10 rounded-full border-2 border-white/10 flex items-start justify-center p-2">
-              <div className="w-1.5 h-1.5 rounded-full bg-lime animate-bounce" />
+            {/* Scroll Indicator */}
+            <div className="mt-20 flex flex-col items-center gap-2 animate-fade-in">
+              <span className="text-xs font-mono text-text-muted uppercase tracking-widest">
+                Scroll to explore
+              </span>
+              <div className="w-6 h-10 rounded-full border-2 border-white/10 flex items-start justify-center p-2">
+                <div className="w-1.5 h-1.5 rounded-full bg-lime animate-bounce" />
+              </div>
             </div>
           </div>
         </div>
