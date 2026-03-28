@@ -1,0 +1,151 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Archivo:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500&display=swap');
+
+:root {
+  --lime: #BFF549;
+  --void: #02040a;
+  --blue-accent: #60a5fa;
+  --yellow-accent: #FACC15;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+::selection {
+  background-color: var(--lime);
+  color: #000;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: 'Archivo', sans-serif;
+  background: var(--void);
+  color: #fff;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Space Grotesk', sans-serif;
+}
+
+code, pre {
+  font-family: 'JetBrains Mono', monospace;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--lime);
+}
+
+/* Background Grid */
+.bg-grid {
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+  background-size: 80px 80px;
+  mask-image: radial-gradient(ellipse at center, black 30%, transparent 80%);
+  -webkit-mask-image: radial-gradient(ellipse at center, black 30%, transparent 80%);
+}
+
+/* Glow Effects */
+.glow-lime {
+  box-shadow: 0 0 20px rgba(191, 245, 73, 0.2), 0 0 60px rgba(191, 245, 73, 0.1);
+}
+
+.glow-text-lime {
+  text-shadow: 0 0 20px rgba(191, 245, 73, 0.5), 0 0 40px rgba(191, 245, 73, 0.2);
+}
+
+/* Glassmorphism */
+.glass {
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+/* Gradient Text */
+.gradient-text-lime {
+  background: linear-gradient(135deg, #BFF549, #8BC34A);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.gradient-text-faded {
+  background: linear-gradient(to right, #fff, rgba(255, 255, 255, 0.4));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Scanline Overlay */
+.scanlines::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0, 0, 0, 0.03) 2px,
+    rgba(0, 0, 0, 0.03) 4px
+  );
+  pointer-events: none;
+}
+
+/* Blackhole Transition Base */
+.blackhole-enter {
+  animation: blackhole-in 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.blackhole-exit {
+  animation: blackhole-out 0.6s cubic-bezier(0.7, 0, 0.84, 0) forwards;
+}
+
+@keyframes blackhole-in {
+  0% {
+    clip-path: circle(0% at var(--click-x, 50%) var(--click-y, 50%));
+    opacity: 0;
+  }
+  100% {
+    clip-path: circle(150% at var(--click-x, 50%) var(--click-y, 50%));
+    opacity: 1;
+  }
+}
+
+@keyframes blackhole-out {
+  0% {
+    clip-path: circle(150% at var(--click-x, 50%) var(--click-y, 50%));
+    opacity: 1;
+  }
+  100% {
+    clip-path: circle(0% at var(--click-x, 50%) var(--click-y, 50%));
+    opacity: 0;
+  }
+}
