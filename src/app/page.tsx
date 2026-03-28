@@ -127,7 +127,7 @@ export default function Home() {
           <GlitchText
             text="THE FUTURE IS NOW"
             tag="h1"
-            className="font-display font-black text-5xl sm:text-7xl md:text-8xl lg:text-9xl leading-[0.9] tracking-tighter mb-6"
+            className="font-display font-black text-[13vw] sm:text-[10vw] md:text-[8vw] lg:text-[7vw] leading-[0.9] tracking-[-0.04em] mb-6"
           />
 
           <div className="mt-4 mb-8">
@@ -218,7 +218,10 @@ export default function Home() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {features.map((feature, index) => (
               <ScrollReveal key={feature.title} delay={index * 0.1}>
-                <div className="group relative p-8 rounded-3xl glass border border-white/[0.06] hover:border-white/10 transition-all duration-500 hover:-translate-y-2 hover:shadow-2xl">
+                <div
+                  className="group relative p-8 rounded-3xl glass border border-white/[0.06] hover:border-white/10 transition-all duration-500 hover:-translate-y-2 hover:shadow-2xl"
+                  style={{ marginTop: index % 2 === 1 ? '60px' : '0' }}
+                >
                   {/* Icon */}
                   <div
                     className={`w-14 h-14 rounded-2xl border flex items-center justify-center text-2xl mb-6 transition-all duration-300 group-hover:scale-110 ${
