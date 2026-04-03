@@ -103,14 +103,14 @@ function KDSLetters({ mat }: { mat: THREE.Material }) {
         <mesh material={mat} rotation={[0, 0, 0.55]} position={[0.22, -0.28, 0]}><boxGeometry args={[0.45, 0.1, 0.1]} /></mesh>
       </group>
       {/* ─── D ─── */}
-      <group ref={(el) => (letters.current[1] = el)} position={[0, 0, 0]}>
+      <group ref={(el) => { letters.current[1] = el }} position={[0, 0, 0]}>
         <mesh material={mat}><boxGeometry args={[0.12, 0.9, 0.15]} /></mesh>
         <mesh material={mat} position={[0.2, 0.4, 0]}><boxGeometry args={[0.52, 0.1, 0.1]} /></mesh>
         <mesh material={mat} position={[0.2, -0.4, 0]}><boxGeometry args={[0.52, 0.1, 0.1]} /></mesh>
         <mesh material={mat} position={[0.52, 0, 0]}><boxGeometry args={[0.1, 0.8, 0.15]} /></mesh>
       </group>
       {/* ─── S ─── */}
-      <group ref={(el) => (letters.current[2] = el)} position={[1.5 * (1 + (currentScroll / Math.max(maxScroll, 1))) * 0.3, 0, 0]}>
+      <group ref={(el) => { letters.current[2] = el }} position={[1.5 * (1 + (currentScroll / Math.max(maxScroll, 1))) * 0.3, 0, 0]}>
         <mesh material={mat} position={[-0.18, 0.35, 0]}><boxGeometry args={[0.48, 0.1, 0.1]} /></mesh>
         <mesh material={mat} position={[0.18, -0.35, 0]}><boxGeometry args={[0.48, 0.1, 0.1]} /></mesh>
         <mesh material={mat} position={[-0.36, 0, 0]}><boxGeometry args={[0.1, 0.6, 0.1]} /></mesh>
