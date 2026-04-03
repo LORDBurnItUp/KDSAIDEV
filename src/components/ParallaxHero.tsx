@@ -98,9 +98,9 @@ function ParticleLayer({ count, zRange, size, color, opacity, parallaxMult }: an
   const geo = useMemo(() => {
     const pos = new Float32Array(count * 3);
     for (let i = 0; i < count; i++) {
-      spread[i*3] = (Math.random()-0.5) * 22;
-      spread[i*3+1] = (Math.random()-0.5) * 16;
-      spread[i*3+2] = (Math.random()-0.5) * zRange;
+      pos[i*3] = (Math.random()-0.5) * 22;
+      pos[i*3+1] = (Math.random()-0.5) * 16;
+      pos[i*3+2] = (Math.random()-0.5) * zRange;
     }
     const g = new THREE.BufferGeometry();
     g.setAttribute('position', new THREE.Float32BufferAttribute(spread, 3));

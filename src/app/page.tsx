@@ -2,6 +2,8 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import dynamic from 'next/dynamic';
+const VexelHero = dynamic(() => import('@/components/VexelHero'), { ssr: false });
+const AmbientSound = dynamic(() => import('@/components/AmbientSound'), { ssr: false });
 
 const VexelHero = dynamic(() => import('@/components/VexelHero'), { ssr: false });
 const AmbientSound = dynamic(() => import('@/components/AmbientSound'), { ssr: false });
