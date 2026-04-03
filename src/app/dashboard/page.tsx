@@ -1,115 +1,107 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 
 // ════════════════════════════════════════
-// DESIGN SYSTEM
+// 🎨 DESIGN SYSTEM — Vanilla CSS (Dark Mode)
 // ════════════════════════════════════════
 const DS = `
   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
+  * { box-sizing: border-box; margin: 0; padding: 0; }
   :root {
-    --bg-sidebar: #0D0D0D;
-    --bg-page: #121212;
-    --bg-card: #1E1E1E;
-    --bg-hover: #252525;
-    --bg-elevated: #2A2A2A;
-    --border: rgba(255,255,255,0.06);
-    --t-p: rgba(255,255,255,0.87);
-    --t-s: rgba(255,255,255,0.60);
-    --t-m: rgba(255,255,255,0.38);
-    --t-d: rgba(255,255,255,0.25);
-    --o: #E5850F; --bl: #5A9CF5; --g: #2ECC8F; --r: #D95555;
+    --bg-side: #0D0D0D; --bg-page: #121212; --bg-card: #1E1E1E;
+    --bg-hov: #252525; --bg-el: #2A2A2A; --bg-in: rgba(255,255,255,0.035);
+    --bd: rgba(255,255,255,0.06); --bd-h: rgba(255,255,255,0.1);
+    --tp: rgba(255,255,255,0.87); --ts: rgba(255,255,255,0.60);
+    --tm: rgba(255,255,255,0.38); --td: rgba(255,255,255,0.25);
+    --or: #E5850F; --bl: #5A9CF5; --gn: #2ECC8F; --rd: #D95555;
   }
-  * { box-sizing: border-box; }
-  body { margin: 0; font-family: 'Inter', sans-serif; background: var(--bg-page); color: var(--t-p); }
-  @keyframes mcPulse{0%,100%{opacity:.3;transform:scale(1)}50%{opacity:1;transform:scale(1.2)}}
-  @keyframes mcFadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+  @keyframes p{0%,100%{opacity:.3;transform:scale(1)}50%{opacity:1;transform:scale(1.3)}}
+  @keyframes f{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+  @keyframes s{from{opacity:0;transform:translateX(-12px)}to{opacity:1;transform:translateX(0)}}
+  body{font-family:'Inter',system-ui,sans-serif;background:var(--bg-page);color:var(--tp);overflow-x:hidden}
+  .mc-f{animation:f .35s ease both}.mc-s{animation:s .25s ease both}
+  ::-webkit-scrollbar{width:5px}::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.06);border-radius:3px}
+  ::selection{background:rgba(229,133,15,0.3)}
 `;
 
 // ════════════════════════════════════════
 // SIDEBAR
 // ════════════════════════════════════════
-function Sidebar({ active, onNav, xp }: any) {
+function Sidebar({ page, go }: { page: string; go: (p: string) => void }) {
   const [time, setTime] = useState(new Date());
   useEffect(() => { const i = setInterval(() => setTime(new Date()), 1000); return () => clearInterval(i); }, []);
 
   const items = [
-    { id: 'command', icon: '🎛️', label: 'Command Center' },
-    { id: 'tasks', icon: '✅', label: 'Tasks & Projects' },
-    { id: 'content', icon: '📺', label: 'Content Intel' },
-    { id: 'brain', icon: '🧠', label: 'Second Brain' },
-    { id: 'productivity', icon: '⚡️', label: 'Productivity' },
-    { id: 'connections', icon: '🔌', label: 'Connections' },
-    { id: 'agents', icon: '🤖', label: 'Agents' },
-    { id: 'settings', icon: '⚙️', label: 'Settings' },
+    ['🎛️', 'command', 'Command Center'],
+    ['✅', 'tasks', 'Tasks & Projects'],
+    ['📺', 'content', 'Content Intel'],
+    ['🧠', 'brain', 'Second Brain'],
+    ['⚡️', 'productivity', 'Productivity'],
+    ['🔌', 'connections', 'Connections'],
+    ['⚙️', 'settings', 'Settings'],
   ];
 
-  const level = Math.floor(xp / 142) + 1;
-  const titles: Record<string, string> = { command: 'Field Agent', tasks: 'Strategist', content: 'Analyst', brain: 'Archivist', productivity: 'Operator', connections: 'Integrator', agents: 'Commander', settings: 'Architect' };
+  const titles: Record<string, string> = { command: 'Field Agent', tasks: 'Strategist', content: 'Analyst', brain: 'Archivist', productivity: 'Operator', connections: 'Integrator', settings: 'Architect' };
 
   return (
-    <aside className="fixed left-0 top-0 bottom-0 flex flex-col z-40" style={{ width: 240, background: 'var(--bg-sidebar)', borderRight: '1px solid var(--border)' }}>
-      {/* Logo */}
-      <div className="px-5 pt-5 pb-3 flex items-center gap-2.5">
-        <div className="w-8 h-8 rounded-lg flex items-center justify-center font-bold text-sm" style={{ background: 'rgba(229,133,15,0.12)', color: 'var(--o)', border: '1px solid rgba(229,133,15,0.25)' }}>K</div>
+    <aside style={{ ...sidebar }}>
+      <div style={{ padding: '16px 16px 10px', display: 'flex', gap: 10, alignItems: 'center' }}>
+        <div style={logo}><span>K</span></div>
         <div>
-          <div style={{ color: 'var(--t-p)', fontWeight: 700, fontSize: 12 }}>Mission Control</div>
-          <div style={{ color: 'var(--t-d)', fontSize: 8, letterSpacing: '0.12em' }}>KDS v2.0 — {time.toLocaleTimeString()}</div>
+          <div style={{ color: 'var(--tp)', fontWeight: 700, fontSize: 12, letterSpacing: '-0.01em' }}>Mission Control</div>
+          <div style={ver}>KDS v2.0 • {time.toLocaleTimeString()}</div>
         </div>
       </div>
 
-      {/* Agent status */}
-      <div className="mx-3 mb-3 p-2.5 rounded-lg" style={{ background: 'rgba(46,204,143,0.06)', border: '1px solid rgba(46,204,143,0.15)' }}>
-        <div className="flex items-center gap-1.5 mb-0.5">
-          <div className="w-1.5 h-1.5 rounded-full" style={{ background: 'var(--g)', boxShadow: '0 0 6px var(--g)', animation: 'mcPulse 2s ease-in-out infinite' }} />
-          <span style={{ color: 'var(--g)', fontSize: 9, fontWeight: 700, letterSpacing: '0.05em' }}>ONLINE</span>
+      <div className="mc-s" style={{ ...agentCard, margin: '0 12px 10px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginBottom: 2 }}>
+          <div style={pulse} />
+          <span style={{ color: 'var(--gn)', fontSize: 9, fontWeight: 700, letterSpacing: '0.05em' }}>ONLINE</span>
         </div>
-        <div style={{ color: 'var(--t-m)', fontSize: 8 }}>Lord Sav · {titles[active] || 'General'}</div>
+        <div style={{ color: 'var(--ts)', fontSize: 9 }}>Lord Sav · {titles[page] || 'General'}</div>
       </div>
 
-      {/* Nav */}
-      <nav className="flex-1 px-2 py-1 space-y-px overflow-y-auto">
-        {items.map(it => {
-          const on = active === it.id;
+      <nav style={{ flex: 1, padding: '4px 8px', display: 'flex', flexDirection: 'column', gap: 2, overflowY: 'auto' }}>
+        {items.map(([icon, id, label], i) => {
+          const on = page === id;
           return (
-            <button key={it.id} onClick={() => onNav(it.id)} className="w-full flex items-center gap-2 px-2.5 py-2 rounded-md text-left transition-all" style={{
-              background: on ? 'rgba(229,133,15,0.06)' : 'transparent',
-              color: on ? 'var(--t-p)' : 'var(--t-m)',
-              fontWeight: on ? 600 : 400, fontSize: 11,
+            <button key={id} onClick={() => go(id)} className="mc-f" style={{
+              ...navBtn, background: on ? 'rgba(229,133,15,0.07)' : 'transparent',
+              border: on ? '1px solid rgba(229,133,15,0.1)' : '1px solid transparent',
+              color: on ? 'var(--tp)' : 'var(--td)', fontWeight: on ? 600 : 400,
+              animationDelay: `${i * 35}ms`,
             }}>
-              <span style={{ fontSize: 12, opacity: on ? 1 : 0.5 }}>{it.icon}</span>
-              {it.label}
+              <span style={{ fontSize: 12, opacity: on ? 1 : 0.4 }}>{icon}</span>
+              {label}
             </button>
           );
         })}
       </nav>
 
-      {/* XP */}
-      <div className="px-4 pb-4">
-        <div className="flex justify-between mb-1">
-          <span style={{ color: 'var(--o)', fontSize: 9, fontWeight: 700 }}>Level {level}</span>
-          <span style={{ color: 'var(--t-d)', fontSize: 8 }}>{xp}/1000 XP</span>
+      <div style={{ padding: '12px 16px 14px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
+          <span style={{ color: 'var(--or)', fontSize: 9, fontWeight: 700 }}>Level 7 — Field Agent</span>
+          <span style={{ color: 'var(--td)', fontSize: 8 }}>647/1000</span>
         </div>
-        <div className="h-1 rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.04)' }}>
-          <div style={{ height: '100%', width: `${((xp % 142) / 142) * 100}%`, background: 'linear-gradient(90deg, var(--o), var(--bl))', transition: 'width 0.5s' }} />
-        </div>
+        <div style={xpBar}><div style={{ ...xpFill, width: '64.7%' }} /></div>
       </div>
     </aside>
   );
 }
 
 // ════════════════════════════════════════
-// STAT CARD (reusable)
+// STAT CARD
 // ════════════════════════════════════════
-function Stat({ label, value, delta, color }: any) {
+function Stat({ label, value, delta, color, delay = 0 }: any) {
   return (
-    <div className="rounded-lg overflow-hidden" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', animation: 'mcFadeIn 0.4s ease both' }}>
-      <div className="h-0.5" style={{ background: `linear-gradient(90deg, ${color}22 0%, transparent 100%)` }} />
-      <div className="p-3">
-        <div style={{ color: 'var(--t-m)', fontSize: 9, letterSpacing: '0.1em', marginBottom: 4 }}>{label}</div>
-        <div className="flex items-end justify-between">
-          <div style={{ color: 'var(--t-p)', fontSize: 20, fontWeight: 700 }}>{value}</div>
-          <div style={{ color, fontSize: 9, fontWeight: 600 }}>{delta}</div>
+    <div className="mc-f" style={{ ...card, animationDelay: `${delay}ms` }}>
+      <div style={{ height: 1, background: `linear-gradient(90deg,${color}22 0%,transparent 100%)` }} />
+      <div style={{ padding: '10px 12px' }}>
+        <div style={{ color: 'var(--td)', fontSize: 8, letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 3 }}>{label}</div>
+        <div style={{ display: 'flex', alignItems: 'flex-end', gap: 8, justifyContent: 'space-between' }}>
+          <span style={{ color: 'var(--tp)', fontSize: 20, fontWeight: 700, lineHeight: 1 }}>{value}</span>
+          <span style={{ color, fontSize: 9, fontWeight: 600, whiteSpace: 'nowrap' }}>{delta}</span>
         </div>
       </div>
     </div>
@@ -117,74 +109,111 @@ function Stat({ label, value, delta, color }: any) {
 }
 
 // ════════════════════════════════════════
-// COMMAND CENTER
+// TODO WIDGET
+// ════════════════════════════════════════
+function Todos() {
+  const [todos, setTodos] = useState<{id:number;text:string;done:boolean}[]>(() => {
+    try { return JSON.parse(localStorage.getItem('kdt')||'[]'); } catch { return []; }
+  });
+  const [inpt, setInpt] = useState('');
+
+  useEffect(() => { localStorage.setItem('kdt', JSON.stringify(todos)); }, [todos]);
+
+  const add = () => { if (!inpt.trim()) return; setTodos(t => [...t, { id: Date.now(), text: inpt, done: false }]); setInpt(''); };
+  const tog = (id: number) => setTodos(t => t.map(x => x.id === id ? { ...x, done: !x.done } : x));
+  const del = (id: number) => setTodos(t => t.filter(x => x.id !== id));
+
+  return (
+    <div style={cardHov}>
+      <div style={{ display: 'flex', gap: 5, marginBottom: 8 }}>
+        <input className="mc-input" value={inpt} onChange={e => setInpt(e.target.value)} onKeyDown={e => e.key === 'Enter' && add()} placeholder="Add a task..." style={{ flex: 1 }} />
+        <button onClick={add} className="mc-btn">Add</button>
+      </div>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 2, maxHeight: 160, overflowY: 'auto' }}>
+        {todos.length === 0 && <div style={{ color: 'var(--td)', fontSize: 10, textAlign: 'center', padding: '12px 0' }}>No todos yet</div>}
+        {todos.map(t => (
+          <div key={t.id} style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '4px 5px', borderRadius: 4, background: t.done ? 'rgba(46,204,143,0.04)' : 'rgba(255,255,255,0.015)' }}>
+            <button onClick={() => tog(t.id)} style={{ width: 13, height: 13, borderRadius: 3, border: t.done ? 'none' : '1px solid rgba(255,255,255,0.12)', background: t.done ? 'var(--gn)' : 'transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 0, flexShrink: 0 }}>
+              {t.done && <span style={{ color: '#000', fontSize: 8 }}>✓</span>}
+            </button>
+            <span style={{ flex: 1, fontSize: 11, color: t.done ? 'var(--td)' : 'var(--ts)', textDecoration: t.done ? 'line-through' : 'none' }}>{t.text}</span>
+            <button onClick={() => del(t.id)} style={{ color: 'var(--td)', background: 'none', border: 'none', cursor: 'pointer', fontSize: 9 }}>✕</button>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ════════════════════════════════════════
+// 🎛️ COMMAND CENTER
 // ════════════════════════════════════════
 function CommandCenter() {
-  const activities = [
-    { icon: '📨', type: 'Message', detail: 'Processed Telegram DM from LORDBurnitup', time: '2m ago' },
-    { icon: '🤖', type: 'Agent', detail: 'Spawned CI/CD workflow agent', time: '5m ago' },
-    { icon: '🚀', type: 'Deploy', detail: 'Pushed ThreeHero to kingsdrippingswag.io', time: '12m ago' },
-    { icon: '🔧', type: 'Tool', detail: 'Git push to LORDBurnItUp/KDSAIDEV', time: '12m ago' },
-    { icon: '📡', type: 'Heartbeat', detail: 'System health check — all green', time: '15m ago' },
-    { icon: '🎨', type: 'Build', detail: 'Next.js build completed (17 pages)', time: '18m ago' },
-    { icon: '📦', type: 'Deploy', detail: 'rsync 79MB to Hostinger live', time: '20m ago' },
-    { icon: '⚡️', type: 'Agent', detail: 'Claw Code parity audit completed', time: '25m ago' },
+  const [time, setTime] = useState(new Date());
+  useEffect(() => { const i = setInterval(() => setTime(new Date()), 1000); return () => clearInterval(i); }, []);
+
+  const acts = [
+    { ico: '📨', type: 'Message', detail: 'Processed Telegram DM from LORDBurnitup', time: '2m ago' },
+    { ico: '🤖', type: 'Agent Spawn', detail: 'Spawned CI/CD workflow sub-agent', time: '5m ago' },
+    { ico: '🚀', type: 'Deploy', detail: 'Pushed ThreeHero → kingsdrippingswag.io', time: '12m ago' },
+    { ico: '🔧', type: 'Git Push', detail: 'Committed 731 lines to KDSAIDEV', time: '14m ago' },
+    { ico: '📡', type: 'Heartbeat', detail: 'System health check — all green', time: '15m ago' },
+    { ico: '🎨', type: 'Build', detail: 'Mission Control dashboard built (7 pages)', time: '18m ago' },
+    { ico: '📦', type: 'Deploy', detail: 'rsync 79MB → Hostinger (SSH key auth)', time: '22m ago' },
+    { ico: '⚡️', type: 'Tool', detail: 'Claw Code parity audit completed', time: '28m ago' },
+    { ico: '🔑', type: 'Security', detail: 'Passwordless SSH deploy key installed', time: '35m ago' },
+    { ico: '📊', type: 'Dashboard', detail: 'Kanban + Content Intel + Brain tabs live', time: '40m ago' },
   ];
 
   return (
     <>
-      <div className="mb-5">
-        <h1 style={{ color: 'var(--t-p)', fontSize: 18, fontWeight: 700, marginBottom: 2 }}>Command Center</h1>
-        <p style={{ color: 'var(--t-m)', fontSize: 11 }}>Real-time overview of your AI empire</p>
+      <Header title="Command Center" sub="Real-time overview of everything your agent is doing" />
+
+      <div className="mc-f" style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', marginBottom: 14, gap: 5 }}>
+        <Stat label="Messages Handled" value="12,847" delta="+342 today" color="var(--or)" delay={60} />
+        <Stat label="Tool Calls" value="8,291" delta="+156 today" color="var(--bl)" delay={100} />
+        <Stat label="Content Synced" value="3,456" delta="+89 today" color="var(--gn)" delay={140} />
+        <Stat label="Agent Uptime" value="99.7%" delta="22d 14h" color="var(--rd)" delay={180} />
       </div>
 
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 mb-5">
-        <Stat label="Messages Handled" value="12,847" delta="+342 today" color="var(--o)" />
-        <Stat label="Tool Calls" value="8,291" delta="+156 today" color="var(--bl)" />
-        <Stat label="Content Synced" value="3,456" delta="+89 today" color="var(--g)" />
-        <Stat label="Agent Uptime" value="99.7%" delta="22d 14h" color="var(--r)" />
-      </div>
-
-      {/* Activity feed */}
-      <div className="rounded-lg p-4 mb-4" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
-        <div className="flex items-center justify-between mb-3">
-          <span style={{ color: 'var(--t-p)', fontSize: 12, fontWeight: 600 }}>Live Activity Feed</span>
-          <div className="flex items-center gap-1">
-            <div className="w-1 h-1 rounded-full" style={{ background: 'var(--g)', animation: 'mcPulse 2s ease-in-out infinite' }} />
-            <span style={{ color: 'var(--g)', fontSize: 8, fontWeight: 700 }}>LIVE</span>
+      <div className="mc-f" style={{ ...card, padding: '12px 14px', marginBottom: 10 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6, justifyContent: 'space-between', marginBottom: 8 }}>
+          <span style={{ color: 'var(--tp)', fontSize: 12, fontWeight: 600 }}>Live Activity Feed</span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+            <div style={pulse} />
+            <span style={{ color: 'var(--gn)', fontSize: 8, fontWeight: 700 }}>LIVE</span>
+            <span style={{ color: 'var(--td)', fontSize: 9, marginLeft: 4 }}>{time.toLocaleTimeString()}</span>
           </div>
         </div>
-        <div className="space-y-1">
-          {activities.map((a, i) => (
-            <div key={i} className="flex items-center gap-2 p-1.5 rounded" style={{ background: 'rgba(255,255,255,0.01)', animationDelay: `${i * 60}ms` }}>
-              <span className="text-sm w-5 text-center flex-shrink-0">{a.icon}</span>
-              <div className="flex-1 min-w-0">
-                <span style={{ color: 'var(--t-p)', fontSize: 11, fontWeight: 500 }}>{a.type}</span>
-                <span style={{ color: 'var(--t-s)', fontSize: 10 }}> — {a.detail}</span>
-              </div>
-              <span style={{ color: 'var(--t-d)', fontSize: 9, fontFamily: "'JetBrains Mono', monospace", whiteSpace: 'nowrap' }}>{a.time}</span>
+        {acts.map((a, i) => (
+          <div key={i} className="mc-f" style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '5px 6px', borderRadius: 4, background: i % 2 === 0 ? 'transparent' : 'rgba(255,255,255,0.01)', animationDelay: `${i * 40}ms` }}>
+            <span style={{ fontSize: 13, width: 20, textAlign: 'center', flexShrink: 0 }}>{a.ico}</span>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <span style={{ color: 'var(--tp)', fontSize: 11, fontWeight: 500 }}>{a.type}</span>
+              <span style={{ color: 'var(--ts)', fontSize: 10 }}> — {a.detail}</span>
             </div>
-          ))}
-        </div>
+            <span style={{ color: 'var(--td)', fontSize: 9, fontFamily: "'JetBrains Mono', monospace", flexShrink: 0 }}>{a.time}</span>
+          </div>
+        ))}
       </div>
 
-      {/* Config + Quick actions */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
-        <div className="rounded-lg p-4" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
-          <div style={{ color: 'var(--t-p)', fontSize: 12, fontWeight: 600, marginBottom: 8 }}>Agent Configuration</div>
-          {[['Model','qwen/qwen3.6-plus'],['Provider','kilocode'],['Memory Stack','MEMORY.md + daily logs'],['Heartbeat','Every 30 min'],['Exec Access','Full (passwordless SSH)'],['GitHub','90+ repos']].map(([k,v],i) => (
-            <div key={i} className="flex justify-between py-1" style={{ borderBottom: i < 5 ? '1px solid var(--border)' : 'none' }}>
-              <span style={{ color: 'var(--t-m)', fontSize: 10 }}>{k}</span>
-              <span style={{ color: 'var(--t-p)', fontSize: 10, fontFamily: "'JetBrains Mono', monospace" }}>{v}</span>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6 }}>
+        <div style={{ ...card, padding: '12px 14px' }}>
+          <div style={{ color: 'var(--tp)', fontSize: 12, fontWeight: 600, marginBottom: 8 }}>Agent Configuration</div>
+          {[['Model','qwen/qwen3.6-plus:free'],['Provider','kilocode'],['Memory Stack','MEMORY.md + daily logs'],
+            ['Heartbeat','Every 30 min'],['Exec Access','Full (passwordless SSH)'],['GitHub','90+ repos']].map(([k,v],i) => (
+            <div key={i} style={{ display: 'flex', gap: 4, justifyContent: 'space-between', padding: '4px 0', borderBottom: i < 5 ? '1px solid var(--bd)' : 'none' }}>
+              <span style={{ color: 'var(--td)', fontSize: 10 }}>{k}</span>
+              <span style={{ color: 'var(--tp)', fontSize: 10, fontFamily: "'JetBrains Mono', monospace" }}>{v}</span>
             </div>
           ))}
         </div>
-        <div className="rounded-lg p-4" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
-          <div style={{ color: 'var(--t-p)', fontSize: 12, fontWeight: 600, marginBottom: 8 }}>Quick Actions</div>
-          <div className="grid grid-cols-2 gap-1.5">
-            {[{icon:'💓',label:'Heartbeat',c:'var(--g)'},{icon:'🔄',label:'Sync',c:'var(--bl)'},{icon:'📊',label:'Daily Brief',c:'var(--o)'},{icon:'🚀',label:'Deploy',c:'var(--r)'}].map((a,i) => (
-              <button key={i} className="flex items-center gap-1.5 px-2.5 py-2 rounded text-left transition-all" style={{ background:'rgba(255,255,255,0.02)',border:'1px solid var(--border)' }}>
-                <span>{a.icon}</span><span style={{color:a.c,fontSize:10,fontWeight:500}}>{a.label}</span>
+        <div style={{ ...card, padding: '12px 14px' }}>
+          <div style={{ color: 'var(--tp)', fontSize: 12, fontWeight: 600, marginBottom: 8 }}>Quick Actions</div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 4 }}>
+            {[{i:'💓',l:'Heartbeat',c:'var(--gn)'},{i:'🔄',l:'Sync Content',c:'var(--bl)'},{i:'📊',l:'Daily Brief',c:'var(--or)'},{i:'🚀',l:'Deploy',c:'var(--rd)'}].map((a,j) => (
+              <button key={j} style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '6px 8px', borderRadius: 5, background: 'rgba(255,255,255,0.02)', border: '1px solid var(--bd)', cursor: 'pointer' }}>
+                <span>{a.i}</span><span style={{ color: a.c, fontSize: 10, fontWeight: 500 }}>{a.l}</span>
               </button>
             ))}
           </div>
@@ -195,121 +224,155 @@ function CommandCenter() {
 }
 
 // ════════════════════════════════════════
-// TASKS & PROJECTS
+// ⚡️ PRODUCTIVITY
 // ════════════════════════════════════════
-function TasksProjects() {
+function ProductivityPage() {
+  const now = new Date();
+  const di = Math.floor((now.getTime() - new Date(now.getFullYear(), 0, 1).getTime()) / 86400000);
+  const phase = di <= 30 ? 'Foundation' : di <= 60 ? 'Growth' : 'Scale';
+  const pd = di <= 30 ? di : di <= 60 ? di - 30 : di - 60;
+  const msgs = ['Just getting started — keep going', 'Building momentum', 'Halfway there — incredible', 'Almost at the finish line'];
+  const mi = pd <= 10 ? 0 : pd <= 20 ? 1 : pd <= 25 ? 2 : 3;
+
+  return (
+    <>
+      <Header title="Productivity" sub={`90-Day tracker • ${phase} phase (Day ${pd}/30)`} />
+
+      <div className="mc-f" style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', marginBottom: 12, gap: 5 }}>
+        <Stat label="Day" value={String(di)} delta="of 365" color="var(--or)" delay={60} />
+        <Stat label="Phase" value={phase} delta={`${pd}/30`} color="var(--bl)" delay={100} />
+        <Stat label="Streak" value={`${pd}d`} delta="current" color="var(--gn)" delay={140} />
+        <Stat label="Message" value="🔥" delta={msgs[mi]} color="var(--rd)" delay={180} />
+      </div>
+
+      <div className="mc-f" style={{ ...card, padding: '12px 14px', marginBottom: 8 }}>
+        <div style={{ color: 'var(--tp)', fontSize: 12, fontWeight: 600, marginBottom: 3 }}>1. Habit Tracker — 90 Days</div>
+        <div style={{ color: 'var(--td)', fontSize: 10, marginBottom: 8 }}>Click to mark. Green = done, Blue = today, Dark = upcoming</div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(30,1fr)', gap: 2, marginBottom: 4 }}>
+          {Array.from({ length: 90 }, (_, i) => {
+            const t = i === di; const d = i < di;
+            return <div key={i} className="mc-f" style={{ aspectRatio: '1', borderRadius: 2, background: t ? 'var(--bl)' : d ? 'var(--gn)' : 'rgba(255,255,255,0.03)', opacity: d ? .35 + (i/90)*.65 : 1, border: t ? '1px solid rgba(90,156,245,0.4)' : '1px solid transparent', animationDelay: `${i*12}ms`, cursor: 'pointer' }} />;
+          })}
+        </div>
+        <div style={{ display: 'flex', justifyContent: 'space-between' }}><span style={{ color: 'var(--td)', fontSize: 8 }}>Day 1</span><span style={{ color: 'var(--td)', fontSize: 8 }}>30</span><span style={{ color: 'var(--td)', fontSize: 8 }}>60</span><span style={{ color: 'var(--td)', fontSize: 8 }}>90</span></div>
+      </div>
+
+      <div style={{ ...card, padding: '12px 14px' }}>
+        <div style={{ color: 'var(--tp)', fontSize: 12, fontWeight: 600, marginBottom: 8 }}>2. Productivity Todos</div>
+        <Todos />
+      </div>
+    </>
+  );
+}
+
+// ════════════════════════════════════════
+// ✅ TASKS & PROJECTS
+// ════════════════════════════════════════
+function TasksPage() {
   const [view, setView] = useState('human');
-  const pColors: any = { high: 'var(--r)', medium: 'var(--o)', low: 'var(--bl)' };
-  const data: any = {
+  const pC: any = { high: 'var(--rd)', medium: 'var(--or)', low: 'var(--bl)' };
+  const d: any = {
     human: {
-      todo: [{ text: 'Finalize KDS brand assets', p: 'high' }, { text: 'Set up payments', p: 'medium' }],
-      prog: [{ text: 'Design marketplace cards', p: 'high' }, { text: 'Write API docs', p: 'medium' }],
-      done: [{ text: 'Deploy ThreeHero', p: 'high' }, { text: 'SSH deploy pipeline', p: 'medium' }],
+      todo: [{ t: 'Finalize KDS brand assets', p: 'high' }, { t: 'Set up payment processing', p: 'medium' }, { t: 'Review affiliate program', p: 'low' }],
+      prog: [{ t: 'Design marketplace product cards', p: 'high' }, { t: 'Write API docs', p: 'medium' }],
+      done: [{ t: 'Deploy ThreeHero 3D experience', p: 'high' }, { t: 'SSH deploy pipeline', p: 'medium' }],
     },
     ai: {
-      todo: [{ text: 'Claw Code parity audit', p: 'medium' }, { text: 'Optimize video clips', p: 'low' }],
-      prog: [{ text: 'Building CI/CD workflows', p: 'high' }, { text: 'Setting up Alan\'s workspace', p: 'high' }],
-      done: [{ text: 'Deploy KDS live (79MB)', p: 'high' }, { text: 'Mission Control dashboard', p: 'high' }, { text: 'SSH deploy key', p: 'medium' }],
+      todo: [{ t: 'Run Claw Code parity audit', p: 'medium' }, { t: 'Optimize video compression', p: 'low' }],
+      prog: [{ t: 'Building CI/CD GitHub workflows', p: 'high' }, { t: 'Setting up Alan\'s workspace', p: 'high' }],
+      done: [{ t: 'Deploy KDS live (79MB)', p: 'high' }, { t: 'Mission Control dashboard', p: 'high' }, { t: 'SSH deploy key installed', p: 'medium' }],
     },
   };
-  const d = data[view];
 
   const col = (title: string, items: any[]) => (
-    <div className="flex-1">
-      <div className="flex items-center justify-between mb-2 px-0.5">
-        <span style={{ color: 'var(--t-m)', fontSize: 9, fontWeight: 700, letterSpacing: '0.1em' }}>{title}</span>
-        <span className="px-1 py-0.5 rounded text-[8px] font-bold" style={{ background: 'rgba(255,255,255,0.04)', color: 'var(--t-d)' }}>{items.length}</span>
+    <div className="mc-f">
+      <div style={{ display: 'flex', alignItems: 'center', gap: 4, justifyContent: 'space-between', marginBottom: 5 }}>
+        <span style={{ color: 'var(--td)', fontSize: 9, fontWeight: 700, letterSpacing: '0.1em' }}>{title}</span>
+        <span className="mc-badge" style={{ background: 'rgba(255,255,255,0.04)', color: 'var(--td)' }}>{items.length}</span>
       </div>
-      <div className="space-y-1.5">
-        {items.map((x: any, i: number) => (
-          <div key={i} className="p-2.5 rounded" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
-            <span className="inline-block px-1 py-0.5 rounded text-[8px] font-bold mb-1" style={{ background: `${pColors[x.p] || 'var(--t-d)'}12`, color: pColors[x.p] || 'var(--t-d)' }}>{x.p?.toUpperCase() || 'N/A'}</span>
-            <div style={{ color: 'var(--t-s)', fontSize: 11 }}>{x.text}</div>
-          </div>
-        ))}
-      </div>
+      {items.map((x: any, i: number) => (
+        <div key={i} style={{ ...cardHov, padding: '7px 9px', marginBottom: 3 }}>
+          <span className="mc-badge" style={{ background: `${pC[x.p]}12`, color: pC[x.p], marginBottom: 4, display: 'inline-block' }}>{x.p.toUpperCase()}</span>
+          <div style={{ color: 'var(--ts)', fontSize: 11, lineHeight: 1.4 }}>{x.t}</div>
+        </div>
+      ))}
     </div>
   );
 
   return (
     <>
-      <div className="flex items-center justify-between mb-5">
-        <div>
-          <h1 style={{ color: 'var(--t-p)', fontSize: 18, fontWeight: 700, marginBottom: 2 }}>Tasks & Projects</h1>
-          <p style={{ color: 'var(--t-m)', fontSize: 11 }}>Kanban board — Human / AI toggle</p>
-        </div>
-        <div className="flex gap-px p-px rounded" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
-          {['human', 'ai'].map(v => (
-            <button key={v} onClick={() => setView(v)} className="px-2.5 py-1 rounded text-[10px] font-semibold transition-all" style={{ background: view === v ? 'var(--o)' : 'transparent', color: view === v ? '#000' : 'var(--t-m)' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 6, justifyContent: 'space-between', marginBottom: 12 }}>
+        <div><h1 className="mc-f" style={{ color: 'var(--tp)', fontSize: 18, fontWeight: 700, marginBottom: 2 }}>Tasks & Projects</h1><p style={{ color: 'var(--tm)', fontSize: 11 }}>Kanban board — toggle Human / AI view</p></div>
+        <div style={{ display: 'flex', gap: 1, padding: 2, borderRadius: 6, background: 'var(--bg-card)', border: '1px solid var(--bd)' }}>
+          {(['human', 'ai'] as const).map(v => (
+            <button key={v} onClick={() => setView(v)} className="mc-f" style={{ padding: '4px 10px', borderRadius: 4, fontSize: 10, fontWeight: 600, cursor: 'pointer', background: view === v ? 'var(--or)' : 'transparent', color: view === v ? '#000' : 'var(--td)', border: 'none' }}>
               {v === 'human' ? '👤 Human' : '🤖 AI'}
             </button>
           ))}
         </div>
       </div>
-      <div className="grid grid-cols-3 gap-3">
-        {col('TO DO', d.todo)}
-        {col('IN PROGRESS', d.prog)}
-        {col('COMPLETE', d.done)}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 6 }}>
+        {col('TO DO', d[view].todo)}
+        {col('IN PROGRESS', d[view].prog)}
+        {col('COMPLETE', d[view].done)}
       </div>
     </>
   );
 }
 
 // ════════════════════════════════════════
-// CONTENT INTEL
+// 📺 CONTENT INTEL
 // ════════════════════════════════════════
-function ContentIntel() {
+function ContentPage() {
   const content = [
-    { title: 'ThreeHero 3D Deploy', views: 12400, eng: 8.2, out: 3.2, s: 'viral' },
-    { title: 'Mission Control Spec', views: 8900, eng: 6.1, out: 1.8, s: 'above' },
-    { title: 'KDS ScrollyVideo', views: 5200, eng: 4.3, out: 1.1, s: 'normal' },
-    { title: 'Claw Code Guide', views: 15800, eng: 9.4, out: 4.1, s: 'viral' },
-    { title: 'SSH Pipeline', views: 3100, eng: 2.8, out: 0.6, s: 'below' },
-    { title: 'Voice Integration', views: 9200, eng: 7.1, out: 2.1, s: 'above' },
+    { title: 'ThreeHero 3D Deploy', type: 'GitHub', views: 12400, eng: 8.2, out: 3.2, s: 'viral' as const },
+    { title: 'Mission Control Spec', type: 'Document', views: 8900, eng: 6.1, out: 1.8, s: 'above' as const },
+    { title: 'KDS ScrollyVideo', type: 'Video', views: 5200, eng: 4.3, out: 1.1, s: 'normal' as const },
+    { title: 'Claw Code Setup Guide', type: 'Guide', views: 15800, eng: 9.4, out: 4.1, s: 'viral' as const },
+    { title: 'SSH Deploy Pipeline', type: 'Technical', views: 3100, eng: 2.8, out: 0.6, s: 'below' as const },
+    { title: 'Voice Agent Integration', type: 'Feature', views: 9200, eng: 7.1, out: 2.1, s: 'above' as const },
   ];
-  const sC: any = { viral: '#2ECC8F', above: '#5A9CF5', normal: 'var(--t-m)', below: '#D95555' };
+
+  const sC: any = { viral: 'var(--gn)', above: 'var(--bl)', normal: 'var(--tm)', below: 'var(--rd)' };
+  const ao = (content.reduce((s,c) => s + c.out, 0) / content.length).toFixed(1);
+  const em: any = { Video: '🎬', GitHub: '🚀', Document: '📄', Guide: '📖', Technical: '🔧', Feature: '⚡️' };
 
   return (
     <>
-      <div className="mb-5">
-        <h1 style={{ color: 'var(--t-p)', fontSize: 18, fontWeight: 700, marginBottom: 2 }}>Content Intel</h1>
-        <p style={{ color: 'var(--t-m)', fontSize: 11 }}>Performance analytics across all content</p>
+      <Header title="Content Intel" sub="Performance analytics across all content" />
+
+      <div className="mc-f" style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', marginBottom: 12, gap: 5 }}>
+        <Stat label="Content Tracked" value={String(content.length)} delta="+2 this week" color="var(--or)" delay={60} />
+        <Stat label="Total Views" value="54.6K" delta="+12K today" color="var(--bl)" delay={100} />
+        <Stat label="Avg Outlier" value={`${ao}×`} delta="vs last 15" color="var(--gn)" delay={140} />
       </div>
 
-      <div className="grid grid-cols-3 gap-2 mb-5">
-        <Stat label="Content Tracked" value={String(content.length)} delta="+2 this week" color="var(--o)" />
-        <Stat label="Total Views" value="54.6K" delta="+12K today" color="var(--bl)" />
-        <Stat label="Avg Outlier" value={('0' + (content.reduce((s, c) => s + c.out, 0) / content.length).toFixed(1) + '×').slice(-4)} delta="vs baseline" color="var(--g)" />
-      </div>
-
-      {/* Baseline bar chart */}
-      <div className="rounded-lg p-4 mb-4" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
-        <div style={{ color: 'var(--t-p)', fontSize: 12, fontWeight: 600, marginBottom: 8 }}>Outlier Baseline</div>
-        <div className="flex items-end gap-1.5 h-16">
-          {content.map((c, i) => (
-            <div key={i} className="flex-1 flex flex-col items-center">
-              <span style={{ color: 'var(--t-d)', fontSize: 7 }}>{c.out}×</span>
-              <div className="w-full rounded-t-sm" style={{ height: `${Math.min(100, c.out * 25)}%`, background: sC[c.s] }} />
+      <div className="mc-f" style={{ ...card, padding: '12px 14px', marginBottom: 8 }}>
+        <div style={{ color: 'var(--tp)', fontSize: 12, fontWeight: 600, marginBottom: 2 }}>Outlier Baseline — last 6</div>
+        <div style={{ color: 'var(--td)', fontSize: 9, marginBottom: 8 }}>🟢 viral 3×+ • 🔵 above avg 1.5×+ • ⚪ normal • 🔴 below</div>
+        <div style={{ display: 'flex', alignItems: 'flex-end', gap: 4, height: 56 }}>
+          {content.map((c,i) => (
+            <div key={i} className="mc-f" style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', animationDelay: `${i*50}ms` }}>
+              <span style={{ color: 'var(--td)', fontSize: 7 }}>{c.out}×</span>
+              <div style={{ width: '100%', borderRadius: '2px 2px 0 0', background: sC[c.s], height: `${Math.min(46,c.out*16)}px`, transition: 'height .5s' }} />
             </div>
           ))}
         </div>
       </div>
 
-      {/* Content grid */}
-      <div className="grid grid-cols-2 lg:grid-cols-3 gap-2">
-        {content.map((c, i) => (
-          <div key={i} className="rounded-lg overflow-hidden" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
-            <div className="h-16 flex items-center justify-center" style={{ background: `linear-gradient(135deg, ${sC[c.s]}12 0%, transparent 100%)` }}>
-              <span style={{ fontSize: 24, opacity: 0.5 }}>📊</span>
+      <h3 className="mc-f" style={{ color: 'var(--tp)', fontSize: 12, fontWeight: 600, marginBottom: 5 }}>Content Grid</h3>
+      <div className="mc-f" style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 5 }}>
+        {content.map((c,i) => (
+          <div key={i} className="mc-f" style={{ ...card, animationDelay: `${i*40}ms` }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4, height: 44, background: `linear-gradient(135deg,${sC[c.s]}0e 0%,transparent 100%)` }}>
+              <span style={{ fontSize: 18, opacity: 0.5 }}>{em[c.type] || '📊'}</span>
             </div>
-            <div className="p-2">
-              <div className="flex items-center justify-between">
-                <span style={{ color: 'var(--t-p)', fontSize: 11, fontWeight: 500 }}>{c.title}</span>
-                <span className="px-1 py-0.5 rounded text-[8px] font-bold" style={{ background: `${sC[c.s]}12`, color: sC[c.s] }}>{c.out}×</span>
+            <div style={{ padding: '6px 8px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 3, justifyContent: 'space-between', marginBottom: 2 }}>
+                <span style={{ color: 'var(--tp)', fontSize: 11, fontWeight: 500 }}>{c.title}</span>
+                <span className="mc-badge" style={{ background: `${sC[c.s]}12`, color: sC[c.s] }}>{c.out}×</span>
               </div>
-              <div className="flex justify-between mt-1" style={{ color: 'var(--t-m)', fontSize: 9 }}>
-                <span>{c.views.toLocaleString()} views</span><span>{c.eng}% eng.</span>
-              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between' }}><span style={{ color: 'var(--tm)', fontSize: 9 }}>{c.views.toLocaleString()} views</span><span style={{ color: 'var(--tm)', fontSize: 9 }}>{c.eng}% eng.</span></div>
             </div>
           </div>
         ))}
@@ -319,57 +382,56 @@ function ContentIntel() {
 }
 
 // ════════════════════════════════════════
-// SECOND BRAIN
+// 🧠 SECOND BRAIN
 // ════════════════════════════════════════
-function SecondBrain() {
-  const [input, setInput] = useState('');
-  const [memos, setMemos] = useState([
-    { id: 1, text: 'Deploy pipeline: rsync via SSH key, no password needed', cat: 'DevOps', time: '2h ago' },
-    { id: 2, text: 'KDS colors: lime #BFF549, gold #FACC15, void #06060e', cat: 'Design', time: '3h ago' },
-    { id: 3, text: 'Claw Code repo disabled — use ultraworkers/claw-code-parity', cat: 'Research', time: '5h ago' },
-    { id: 4, text: 'Hostinger: 46.202.197.97:65002, user u142089309', cat: 'Infra', time: '6h ago' },
-    { id: 5, text: 'ThreeHero: custom GLSL shader for rare design aesthetic', cat: 'Dev', time: '8h ago' },
+function BrainPage() {
+  const [inp, setInp] = useState('');
+  const [mems, setMems] = useState([
+    { id: 1, t: 'Deploy pipeline: rsync via SSH key, no password', c: 'DevOps', time: '2h ago' },
+    { id: 2, t: 'KDS palette: lime #BFF549, gold #FACC15, void #06060e', c: 'Design', time: '3h ago' },
+    { id: 3, t: 'Claw Code repo disabled — use claw-code-parity', c: 'Research', time: '5h ago' },
+    { id: 4, t: 'Hostinger: 46.202.197.97:65002, user u142089309', c: 'Infra', time: '6h ago' },
+    { id: 5, t: 'ThreeHero: custom GLSL shader for rare design look', c: 'Dev', time: '8h ago' },
+    { id: 6, t: 'Omar + Alan = KDS co-founders of Kings Dripping Swag', c: 'Team', time: '1d ago' },
   ]);
 
   const add = () => {
-    if (!input.trim()) return;
-    input.split('\n').filter(l => l.trim()).forEach(line => {
-      setMemos(m => [{ id: Date.now() + Math.random(), text: line.trim(), cat: line.startsWith('http') ? 'URL' : 'Note', time: 'now' }, ...m]);
+    if (!inp.trim()) return;
+    inp.split('\n').filter((l:string) => l.trim()).forEach((line:string) => {
+      setMems(m => [{ id: Date.now()+Math.random(), t: line.trim(), c: line.startsWith('http') ? 'URL' : 'Note', time: 'now' }, ...m]);
     });
-    setInput('');
+    setInp('');
   };
 
+  const cats = [...new Set(mems.map(m => m.c))];
+
   return (
     <>
-      <div className="mb-5">
-        <h1 style={{ color: 'var(--t-p)', fontSize: 18, fontWeight: 700, marginBottom: 2 }}>Second Brain</h1>
-        <p style={{ color: 'var(--t-m)', fontSize: 11 }}>Knowledge base — store and retrieve memory</p>
+      <Header title="Second Brain" sub="Your agent's knowledge base — where it stores and retrieves memory" />
+
+      <div className="mc-f" style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', marginBottom: 12, gap: 5 }}>
+        <Stat label="Stored Facts" value={String(mems.length)} delta="+5 today" color="var(--or)" delay={60} />
+        <Stat label="Categories" value={String(cats.length)} delta="active" color="var(--bl)" delay={100} />
+        <Stat label="Queued" value="0" delta="all synced" color="var(--gn)" delay={140} />
       </div>
 
-      <div className="grid grid-cols-3 gap-2 mb-5">
-        <Stat label="Stored Facts" value={String(memos.length)} delta="+5 today" color="var(--o)" />
-        <Stat label="Categories" value={String(new Set(memos.map(m => m.cat)).size)} delta="active" color="var(--bl)" />
-        <Stat label="Queued" value="0" delta="all synced" color="var(--g)" />
-      </div>
-
-      {/* Add input */}
-      <div className="rounded-lg p-4 mb-4" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
-        <div style={{ color: 'var(--t-p)', fontSize: 12, fontWeight: 600, marginBottom: 6 }}>Add Memory</div>
-        <textarea value={input} onChange={e => setInput(e.target.value)} placeholder="Type a fact, paste URLs (one per line for bulk)..." className="w-full p-2 rounded text-sm outline-none resize-none" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', color: 'var(--t-p)', minHeight: 50, fontFamily: "'JetBrains Mono', monospace", fontSize: 11 }} />
-        <div className="flex justify-between items-center mt-2">
-          <div className="flex gap-1">
-            {['Note', 'URL', 'Code'].map(t => <span key={t} className="px-1.5 py-0.5 rounded text-[8px] font-bold" style={{ background: 'rgba(255,255,255,0.04)', color: 'var(--t-m)', border: '1px solid var(--border)' }}>{t}</span>)}
+      <div className="mc-f" style={{ ...card, padding: '12px 14px', marginBottom: 8 }}>
+        <div style={{ color: 'var(--tp)', fontSize: 12, fontWeight: 600, marginBottom: 4 }}>Add Memory</div>
+        <textarea className="mc-input" value={inp} onChange={e => setInp(e.target.value)} placeholder="Type a fact, paste URLs (one per line for bulk)..." style={{ minHeight: 48, resize: 'vertical', marginBottom: 6, fontFamily: "'JetBrains Mono', monospace", fontSize: 10, lineHeight: 1.5 }} />
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div style={{ display: 'flex', gap: 3 }}>
+            {['Note','URL','Code'].map(t => <span key={t} className="mc-badge" style={{ background: 'rgba(255,255,255,0.04)', color: 'var(--td)', border: '1px solid var(--bd)' }}>{t}</span>)}
           </div>
-          <button onClick={add} className="px-3 py-1 rounded text-[10px] font-semibold" style={{ background: 'rgba(229,133,15,0.12)', color: 'var(--o)', border: '1px solid rgba(229,133,15,0.25)' }}>Store</button>
+          <button onClick={add} className="mc-btn">Store</button>
         </div>
       </div>
 
-      <div className="space-y-1.5">
-        {memos.map(m => (
-          <div key={m.id} className="flex items-start gap-2 p-2 rounded" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
-            <span className="px-1 py-0.5 rounded text-[8px] font-bold flex-shrink-0 mt-0.5" style={{ background: m.cat === 'URL' ? 'rgba(90,156,245,0.08)' : 'rgba(229,133,15,0.08)', color: m.cat === 'URL' ? 'var(--bl)' : 'var(--o)' }}>{m.cat}</span>
-            <span className="flex-1" style={{ color: 'var(--t-s)', fontSize: 11, lineHeight: 1.4 }}>{m.text}</span>
-            <span style={{ color: 'var(--t-d)', fontSize: 9, whiteSpace: 'nowrap' }}>{m.time}</span>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+        {mems.map(m => (
+          <div key={m.id} className="mc-f" style={{ display: 'flex', alignItems: 'flex-start', gap: 6, padding: '6px 10px', borderRadius: 6, background: 'var(--bg-card)', border: '1px solid var(--bd)' }}>
+            <span className="mc-badge" style={{ background: m.c === 'URL' ? 'rgba(90,156,245,0.1)' : 'rgba(229,133,15,0.1)', color: m.c === 'URL' ? 'var(--bl)' : 'var(--or)', marginTop: 2, flexShrink: 0 }}>{m.c}</span>
+            <span style={{ flex: 1, color: 'var(--ts)', fontSize: 11, lineHeight: 1.4 }}>{m.t}</span>
+            <span style={{ color: 'var(--td)', fontSize: 9, flexShrink: 0 }}>{m.time}</span>
           </div>
         ))}
       </div>
@@ -378,90 +440,49 @@ function SecondBrain() {
 }
 
 // ════════════════════════════════════════
-// PRODUCTIVITY
+// 🔌 CONNECTIONS
 // ════════════════════════════════════════
-function Productivity() {
-  const today = new Date();
-  const dayIndex = Math.floor((today.getTime() - new Date(today.getFullYear(), 0, 1).getTime()) / 86400000);
-  const phase = dayIndex <= 30 ? 'Foundation' : dayIndex <= 60 ? 'Growth' : 'Scale';
-  const pDay = dayIndex <= 30 ? dayIndex : dayIndex <= 60 ? dayIndex - 30 : dayIndex - 60;
-  const msgs = ['Just getting started', 'Building momentum', 'Halfway there — incredible', 'Almost at the finish'];
-  const mi = pDay <= 10 ? 0 : pDay <= 20 ? 1 : pDay <= 25 ? 2 : 3;
-
-  return (
-    <>
-      <div className="mb-5">
-        <h1 style={{ color: 'var(--t-p)', fontSize: 18, fontWeight: 700, marginBottom: 2 }}>Productivity</h1>
-        <p style={{ color: 'var(--t-m)', fontSize: 11 }}>90-day tracker • {phase} phase (Day {pDay}/30)</p>
-      </div>
-
-      <div className="grid grid-cols-4 gap-2 mb-5">
-        <Stat label="Day" value={String(dayIndex)} delta="of 365" color="var(--o)" />
-        <Stat label="Phase" value={phase} delta={`${pDay}/30`} color="var(--bl)" />
-        <Stat label="Streak" value={`${pDay}d`} label2="current" color="var(--g)" />
-        <Stat label="Message" value="🔥" delta={msgs[mi]} color="var(--r)" />
-      </div>
-
-      <div className="rounded-lg p-4" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
-        <div style={{ color: 'var(--t-p)', fontSize: 12, fontWeight: 600, marginBottom: 8 }}>90-Day Habit Tracker</div>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(30, 1fr)', gap: 1 }}>
-          {Array.from({ length: 90 }, (_, i) => (
-            <div key={i} className="aspect-square rounded-[1px]" style={{ background: i < dayIndex ? '#2ECC8F' : i === dayIndex ? '#5A9CF5' : 'rgba(255,255,255,0.04)', opacity: i < dayIndex ? 0.4 + (i / 90) * 0.6 : 1 }} />
-          ))}
-        </div>
-        <div className="flex justify-between mt-2" style={{ color: 'var(--t-d)', fontSize: 8 }}><span>1</span><span>30</span><span>60</span><span>90</span></div>
-      </div>
-    </>
-  );
-}
-
-// ════════════════════════════════════════
-// CONNECTIONS
-// ════════════════════════════════════════
-function Connections() {
+function ConnectionsPage() {
   const conns = [
-    { name: 'Telegram', icon: '📨', status: 'active', desc: '@KingSwaggyDrip_bot' },
-    { name: 'Discord', icon: '💬', status: 'active', desc: 'DOUGLAS server' },
-    { name: 'GitHub', icon: '🐙', status: 'active', desc: '90+ repos' },
-    { name: 'Hostinger', icon: '🖥️', status: 'active', desc: 'kingsdrippingswag.io' },
-    { name: 'Tailscale', icon: '🛡️', status: 'active', desc: 'lordburnitdownsasus' },
-    { name: 'StreamChat', icon: '💭', status: 'active', desc: 'KiloClaw' },
-    { name: 'YouTube', icon: '📺', status: 'inactive', desc: 'Not connected' },
-    { name: 'Skool', icon: '🏫', status: 'inactive', desc: 'Not connected' },
-    { name: 'Zapier', icon: '⚡', status: 'inactive', desc: 'Via Zapier (planned)', zapier: true },
+    { name: 'Telegram', ico: '📨', s: 'active' as const, d: '@KingSwaggyDrip_bot', z: false },
+    { name: 'Discord', ico: '💬', s: 'active' as const, d: 'DOUGLAS server', z: false },
+    { name: 'GitHub', ico: '🐙', s: 'active' as const, d: 'LORDBurnItUp (90+ repos)', z: false },
+    { name: 'Hostinger', ico: '🖥️', s: 'active' as const, d: 'kingsdrippingswag.io', z: false },
+    { name: 'Tailscale', ico: '🛡️', s: 'active' as const, d: 'lordburnitdownsasus', z: false },
+    { name: 'StreamChat', ico: '💭', s: 'active' as const, d: 'KiloClaw', z: false },
+    { name: 'YouTube', ico: '📺', s: 'inactive' as const, d: 'Not connected', z: false },
+    { name: 'Skool', ico: '🏫', s: 'inactive' as const, d: 'Not connected', z: false },
+    { name: 'Zapier', ico: '⚡', s: 'inactive' as const, d: 'Via Zapier (planned)', z: true },
   ];
-  const active = conns.filter(c => c.status === 'active').length;
+  const act = conns.filter(c => c.s === 'active').length;
 
   return (
     <>
-      <div className="mb-5">
-        <h1 style={{ color: 'var(--t-p)', fontSize: 18, fontWeight: 700, marginBottom: 2 }}>Connections</h1>
-        <p style={{ color: 'var(--t-m)', fontSize: 11 }}>{active}/{conns.length} integrations active</p>
-      </div>
+      <Header title="Connections" sub={`${act}/${conns.length} integrations — ${Math.round(act/conns.length*100)}% coverage`} />
 
-      <div className="rounded-lg p-4 mb-5" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
-        <div className="flex justify-between mb-1.5">
-          <span style={{ color: 'var(--t-p)', fontSize: 11, fontWeight: 600 }}>{active} / {conns.length} Connected</span>
-          <span style={{ color: 'var(--g)', fontSize: 10, fontWeight: 700 }}>{Math.round(active / conns.length * 100)}%</span>
+      <div className="mc-f" style={{ ...card, padding: '12px 14px', marginBottom: 10 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 5 }}>
+          <span style={{ color: 'var(--tp)', fontSize: 11, fontWeight: 600 }}>{act} / {conns.length} Connected</span>
+          <span style={{ color: 'var(--gn)', fontSize: 10, fontWeight: 700 }}>{Math.round(act/conns.length*100)}%</span>
         </div>
-        <div className="h-1.5 rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.04)' }}>
-          <div style={{ width: `${active / conns.length * 100}%`, height: '100%', background: 'linear-gradient(90deg, var(--g), var(--bl))', transition: 'width 0.5s' }} />
+        <div style={{ height: 5, borderRadius: 4, background: 'rgba(255,255,255,0.04)', overflow: 'hidden' }}>
+          <div style={{ height: '100%', width: `${(act/conns.length)*100}%`, background: 'linear-gradient(90deg,var(--gn),var(--bl))', transition: 'width .6s', borderRadius: 4 }} />
         </div>
       </div>
 
-      <div className="grid grid-cols-2 lg:grid-cols-3 gap-2">
-        {conns.map((c, i) => (
-          <div key={i} className="p-3 rounded-lg flex items-center gap-2.5" style={{ background: 'var(--bg-card)', border: c.status === 'active' ? '1px solid var(--border)' : '1px dashed rgba(255,255,255,0.08)' }}>
-            <span className="text-xl">{c.icon}</span>
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-1">
-                <span style={{ color: 'var(--t-p)', fontSize: 11, fontWeight: 500 }}>{c.name}</span>
-                {c.zapier && <span style={{ color: 'var(--o)', fontSize: 7, fontWeight: 700 }}>ZAPIER</span>}
+      <div className="mc-f" style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 5 }}>
+        {conns.map((c,i) => (
+          <div key={i} style={{ ...cardHov, padding: '10px 12px', display: 'flex', alignItems: 'center', gap: 8, borderStyle: c.s === 'active' ? 'solid' : 'dashed' as const }}>
+            <span style={{ fontSize: 18 }}>{c.ico}</span>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                <span style={{ color: 'var(--tp)', fontSize: 12, fontWeight: 600 }}>{c.name}</span>
+                {c.z && <span style={{ color: 'var(--or)', fontSize: 7, fontWeight: 700, letterSpacing: '0.05em' }}>VIA ZAPIER</span>}
               </div>
-              <span style={{ color: c.status === 'active' ? 'var(--t-m)' : 'var(--t-d)', fontSize: 9 }}>{c.desc}</span>
-              <span className="inline-block mt-0.5 px-1 py-0.5 rounded text-[7px] font-bold" style={{ background: c.status === 'active' ? 'rgba(46,204,143,0.08)' : 'rgba(255,255,255,0.03)', color: c.status === 'active' ? 'var(--g)' : 'var(--t-d)' }}>{c.status.toUpperCase()}</span>
+              <span style={{ color: c.s === 'active' ? 'var(--td)' : 'var(--td)', fontSize: 10 }}>{c.d}</span>
+              <span className="mc-badge" style={{ display: 'inline-block', marginTop: 3, background: c.s === 'active' ? 'rgba(46,204,143,0.08)' : 'rgba(255,255,255,0.03)', color: c.s === 'active' ? 'var(--gn)' : 'var(--td)' }}>{c.s.toUpperCase()}</span>
             </div>
-            {c.status === 'inactive' && <button className="px-2 py-1 rounded text-[8px] font-semibold flex-shrink-0" style={{ background: 'rgba(229,133,15,0.08)', color: 'var(--o)', border: '1px solid rgba(229,133,15,0.2)' }}>Connect</button>}
+            {c.s === 'inactive' && <button className="mc-btn" style={{ padding: '3px 8px', fontSize: 9 }}>Connect</button>}
           </div>
         ))}
       </div>
@@ -470,50 +491,9 @@ function Connections() {
 }
 
 // ════════════════════════════════════════
-// AGENTS
+// ⚙️ SETTINGS
 // ════════════════════════════════════════
-function AgentsView() {
-  const agents = [
-    { name: 'Lord Sav', role: 'Supervisor / General', status: 'LIVE', emoji: '🧠', tasks: 47 },
-    { name: 'CI/CD Agent', role: 'GitHub Workflows', status: 'LIVE', emoji: '⚙️', tasks: 8 },
-    { name: 'Deploy Agent', role: 'Hostinger Deploys', status: 'LIVE', emoji: '🚀', tasks: 5 },
-    { name: 'UI/UX Agent', role: 'Dribbble Design', status: 'QUEUED', emoji: '🎨', tasks: 3 },
-    { name: 'GitHub Organizer', role: 'Repo Cleanup', status: 'DONE', emoji: '📦', tasks: 15 },
-    { name: 'Security Scanner', role: 'Code Quality', status: 'IDLE', emoji: '🔒', tasks: 0 },
-    { name: 'Community Agent', role: 'Social Media', status: 'IDLE', emoji: '🌐', tasks: 0 },
-  ];
-  const sC: any = { LIVE: '#2ECC8F', QUEUED: '#E5850F', DONE: '#5A9CF5', IDLE: 'var(--t-d)' };
-
-  return (
-    <>
-      <div className="mb-5">
-        <h1 style={{ color: 'var(--t-p)', fontSize: 18, fontWeight: 700, marginBottom: 2 }}>Agents</h1>
-        <p style={{ color: 'var(--t-m)', fontSize: 11 }}>Swarm — {agents.filter(a => a.status === 'LIVE').length} active</p>
-      </div>
-      <div className="space-y-1.5">
-        {agents.map((a, i) => (
-          <div key={i} className="flex items-center gap-3 p-3 rounded" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
-            <span className="text-lg">{a.emoji}</span>
-            <div className="flex-1">
-              <span style={{ color: 'var(--t-p)', fontSize: 12, fontWeight: 600 }}>{a.name}</span>
-              <span style={{ color: 'var(--t-m)', fontSize: 10 }}> — {a.role}</span>
-            </div>
-            <span className="flex items-center gap-1">
-              <div className="w-1.5 h-1.5 rounded-full" style={{ background: sC[a.status] }} />
-              <span style={{ color: sC[a.status], fontSize: 9, fontWeight: 700 }}>{a.status}</span>
-            </span>
-            <span style={{ color: 'var(--t-d)', fontSize: 10, fontFamily: "'JetBrains Mono', monospace" }}>{a.tasks}</span>
-          </div>
-        ))}
-      </div>
-    </>
-  );
-}
-
-// ════════════════════════════════════════
-// SETTINGS
-// ════════════════════════════════════════
-function Settings() {
+function SettingsPage() {
   const [soul, setSoul] = useState(`You are Lord Sav — personal AI assistant to LORDBurnItDown (Omar).
 Be sharp, not stiff. Talk like a real person who happens to be ridiculously competent.
 Loyalty is non-negotiable. Omar's knowledge base is sacred.
@@ -521,25 +501,24 @@ Be proactive. Don't wait to be told — anticipate. Stay one step ahead.`);
 
   return (
     <>
-      <div className="mb-5">
-        <h1 style={{ color: 'var(--t-p)', fontSize: 18, fontWeight: 700, marginBottom: 2 }}>Settings</h1>
-        <p style={{ color: 'var(--t-m)', fontSize: 11 }}>Personality, config, and control panel</p>
-      </div>
+      <Header title="Settings" sub="Personality, configuration, and control panel" />
 
-      <div className="rounded-lg p-4 mb-4" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
-        <div className="flex items-center justify-between mb-3">
-          <span style={{ color: 'var(--t-p)', fontSize: 12, fontWeight: 600 }}>Personality & Character</span>
-          <button className="px-2.5 py-1 rounded text-[9px] font-semibold" style={{ background: 'rgba(229,133,15,0.12)', color: 'var(--o)', border: '1px solid rgba(229,133,15,0.25)' }}>Save</button>
+      <div className="mc-f" style={{ ...card, padding: '12px 14px', marginBottom: 8 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+          <span style={{ color: 'var(--tp)', fontSize: 12, fontWeight: 600 }}>Personality & Character</span>
+          <button className="mc-btn">Save</button>
         </div>
-        <textarea value={soul} onChange={e => setSoul(e.target.value)} className="w-full p-2 rounded text-sm outline-none resize-y" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', color: 'var(--t-p)', minHeight: 150, fontFamily: "'JetBrains Mono', monospace", fontSize: 11, lineHeight: 1.6 }} />
+        <textarea className="mc-input" value={soul} onChange={e => setSoul(e.target.value)} style={{ minHeight: 140, resize: 'vertical', fontFamily: "'JetBrains Mono', monospace", fontSize: 10, lineHeight: 1.6 }} />
+        <p style={{ color: 'var(--td)', fontSize: 9, marginTop: 4 }}>This is your SOUL.md — it defines how you think and respond</p>
       </div>
 
-      <div className="rounded-lg p-4" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
-        <div style={{ color: 'var(--t-p)', fontSize: 12, fontWeight: 600, marginBottom: 8 }}>Configuration</div>
-        {[['Model','kilocode/qwen/qwen3.6-plus:free'],['Provider','kilocode'],['Gateway','loopback:3001'],['Tailscale','serve'],['Exec','full'],['Telegram DM','pairing']].map(([k,v],i) => (
-          <div key={i} className="flex items-center justify-between py-2.5" style={{ borderBottom: i < 5 ? '1px solid var(--border)' : 'none' }}>
-            <span style={{ color: 'var(--t-p)', fontSize: 11, fontWeight: 500 }}>{k}</span>
-            <span style={{ color: 'var(--o)', fontSize: 10, fontFamily: "'JetBrains Mono', monospace" }}>{v}</span>
+      <div style={{ ...card, padding: '12px 14px' }}>
+        <div style={{ color: 'var(--tp)', fontSize: 12, fontWeight: 600, marginBottom: 8 }}>Configuration</div>
+        {[['Model','kilocode/qwen/qwen3.6-plus:free'],['Provider','kilocode'],['Gateway','loopback:3001'],
+          ['Tailscale','serve (tailnet)'],['Exec Security','full'],['Telegram DM','pairing'],['Browser','headless']].map(([k,v],i) => (
+          <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '6px 0', borderBottom: i < 6 ? '1px solid var(--bd)' : 'none' }}>
+            <span style={{ color: 'var(--tp)', fontSize: 11, fontWeight: 500 }}>{k}</span>
+            <span style={{ color: 'var(--or)', fontSize: 10, fontFamily: "'JetBrains Mono', monospace" }}>{v}</span>
           </div>
         ))}
       </div>
@@ -548,20 +527,43 @@ Be proactive. Don't wait to be told — anticipate. Stay one step ahead.`);
 }
 
 // ════════════════════════════════════════
+// HEADER
+// ════════════════════════════════════════
+function Header({ title, sub }: { title: string; sub: string }) {
+  return <div className="mc-f" style={{ marginBottom: 14 }}><div><h1 className="mc-f" style={{ color: 'var(--tp)', fontSize: 18, fontWeight: 700, marginBottom: 2 }}>{title}</h1><p style={{ color: 'var(--tm)', fontSize: 11 }}>{sub}</p></div></div>;
+}
+
+// ════════════════════════════════════════
+// STYLES
+// ════════════════════════════════════════
+const sidebar = { width: 232, background: 'var(--bg-side)', borderRight: '1px solid var(--bd)', position: 'fixed', left: 0, top: 0, bottom: 0, display: 'flex', flexDirection: 'column', zIndex: 40 } as React.CSSProperties;
+const logo = { width: 28, height: 28, borderRadius: 6, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(229,133,15,0.12)', border: '1px solid rgba(229,133,15,0.2)', color: 'var(--or)', fontWeight: 800, fontSize: 12, flexShrink: 0 };
+const ver = { color: 'var(--td)', fontSize: 8, letterSpacing: '0.12em' };
+const agentCard = { padding: '7px 9px', borderRadius: 7, background: 'rgba(46,204,143,0.06)', border: '1px solid rgba(46,204,143,0.15)' };
+const pulse = { width: 5, height: 5, borderRadius: '50%', background: 'var(--gn)', boxShadow: '0 0 6px var(--gn)', animation: 'p 2s ease-in-out infinite' };
+const navBtn = { display: 'flex', alignItems: 'center', gap: 7, width: '100%', padding: '6px 9px', borderRadius: 6, fontSize: 11, textAlign: 'left', justifyContent: 'flex-start', transition: 'all .15s', cursor: 'pointer' };
+const xpBar = { height: 4, borderRadius: 4, background: 'rgba(255,255,255,0.04)', overflow: 'hidden' };
+const xpFill = { height: '100%', borderRadius: 4 };
+const card = { background: 'var(--bg-card)', border: '1px solid var(--bd)', borderRadius: 7, overflow: 'hidden', transition: 'border-color .2s' };
+const cardHov = { ...card, display: 'flex', flexDirection: 'column', gap: 1 } as React.CSSProperties;
+
+// ════════════════════════════════════════
 // PAGE ROUTER
 // ════════════════════════════════════════
-const pages: any = { command: CommandCenter, tasks: TasksProjects, content: ContentIntel, brain: SecondBrain, productivity: Productivity, connections: Connections, agents: AgentsView, settings: Settings };
+const pages: Record<string, () => JSX.Element> = {
+  command: CommandCenter, productivity: ProductivityPage, tasks: TasksPage,
+  content: ContentPage, brain: BrainPage, connections: ConnectionsPage, settings: SettingsPage,
+};
 
 export default function DashboardPage() {
   const [page, setPage] = useState('command');
-  const [xp] = useState(647);
-  const C = pages[page];
+  const C = pages[page] || CommandCenter;
 
   return (
-    <div className="flex min-h-screen" style={{ background: 'var(--bg-page)' }}>
+    <div style={{ minWidth: '100vw', display: 'flex', minHeight: '100vh', background: 'var(--bg-page)' }}>
       <style>{DS}</style>
-      <Sidebar active={page} onNav={setPage} xp={xp} />
-      <main className="ml-60 flex-1 p-5" style={{ maxWidth: '100%', overflowX: 'hidden' }}>
+      <Sidebar page={page} go={setPage} />
+      <main style={{ marginLeft: 232, flex: 1, padding: 20, maxWidth: '100%', overflowX: 'hidden' }}>
         <C key={page} />
       </main>
     </div>
