@@ -4,100 +4,90 @@ import { useRef, useMemo, useEffect, useState, useCallback } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import * as THREE from 'three';
 
-// ════════════════════════════════════════════════
-// SHARED MOUSE STATE
-// ════════════════════════════════════════════════
+// ─── Shared mouse tracking ───
 const mouseTarget = new THREE.Vector2(0, 0);
 const mouseCurrent = new THREE.Vector2(0, 0);
 
-// ════════════════════════════════════════════════
-// RARE TORUS KNOT — Custom shader with mouse-reactive bloom
-// ════════════════════════════════════════════════
-function RareTorusKnot() {
+// ════════════════════════════════════════
+// RARE TORUS KNOT — The hero centerpiece
+// ════════════════════════════════════════
+function HeroKnot() {
   const mesh = useRef<THREE.Mesh>(null);
   const wire = useRef<THREE.Mesh>(null);
   const glow = useRef<THREE.Mesh>(null);
 
-  // Custom GLSL material
+  // Custom GLSL shader material
   const shaderMat = useMemo(() => {
     return new THREE.ShaderMaterial({
       uniforms: {
         uTime: { value: 0 },
         uMouse: { value: new THREE.Vector2(0, 0) },
-        uColorLime: { value: new THREE.Color('#BFF549') },
-        uColorGold: { value: new THREE.Color('#FACC15') },
-        uColorBlue: { value: new THREE.Color('#60A5FA') },
+        uLime: { value: new THREE.Color('#BFF549') },
+        uGold: { value: new THREE.Color('#FACC15') },
+        uBlue: { value: new THREE.Color('#60A5FA') },
       },
       vertexShader: `
         varying vec3 vNormal;
         varying vec2 vUv;
         varying vec3 vPos;
-        uniform float uTime;
-        
         void main() {
           vNormal = normalize(normalMatrix * normal);
           vUv = uv;
-          vec4 mvPos = modelViewMatrix * vec4(position, 1.0);
-          vPos = mvPos.xyz;
-          // Subtle vertex displacement
-          vec3 displaced = position + normal * sin(position.x * 2.0 + uTime) * 0.03;
-          gl_Position = projectionMatrix * mvPos;
+          vPos = (modelViewMatrix * vec4(position, 1.0)).xyz;
+          gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
         }
       `,
       fragmentShader: `
         uniform float uTime;
         uniform vec2 uMouse;
-        uniform vec3 uColorLime;
-        uniform vec3 uColorGold;
-        uniform vec3 uColorBlue;
+        uniform vec3 uLime;
+        uniform vec3 uGold;
+        uniform vec3 uBlue;
         varying vec3 vNormal;
         varying vec2 vUv;
         varying vec3 vPos;
-        
+
         void main() {
-          vec3 viewDir = normalize(-vPos);
-          float fresnel = pow(1.0 - abs(dot(viewDir, vNormal)), 2.5);
-          
-          // Animated color gradient
+          vec3 view = normalize(-vPos);
+          float fresnel = pow(1.0 - abs(dot(view, vNormal)), 2.5);
+
+          // Color cycling
           float t = sin(uTime * 0.3) * 0.5 + 0.5;
-          vec3 core = mix(uColorLime, uColorGold, t);
-          core = mix(core, uColorBlue, sin(uTime * 0.15) * 0.3 + 0.3);
-          
-          // Mouse-reactive glow
-          float mouseDist = length(vUv - (uMouse * 0.5 + 0.5));
-          float mouseGlow = smoothstep(0.4, 0.0, mouseDist);
-          
-          // Final color
-          vec3 color = core * (fresnel + mouseGlow * 0.5);
-          float alpha = fresnel * 0.5 + mouseGlow * 0.3;
-          
-          gl_FragColor = vec4(color, alpha);
+          vec3 col = mix(uGold, uLime, t);
+          col = mix(col, uBlue, sin(uTime * 0.15) * 0.3 + 0.3);
+
+          // Mouse-proximity glow
+          float mDist = length(vUv - (uMouse * 0.5 + 0.5));
+          float mGlow = smoothstep(0.4, 0.0, mDist);
+
+          vec3 outColor = col * (fresnel * 2.0 + mGlow * 3.0);
+          float alpha = fresnel * 0.45 + mGlow * 0.25;
+
+          gl_FragColor = vec4(outColor, alpha);
         }
       `,
       transparent: true,
-      blending: THREE.AdditiveBlending,
-      side: THREE.DoubleSide,
+      side: THREE.FrontSide,
       depthWrite: false,
+      blending: THREE.AdditiveBlending,
     });
   }, []);
 
   useFrame((state, delta) => {
     if (!mesh.current || !wire.current || !glow.current) return;
-    
-    // Smooth mouse
     mouseCurrent.lerp(mouseTarget, 0.06);
-    
-    // Rotation influenced by mouse
-    mesh.current.rotation.x += delta * 0.08 + mouseCurrent.y * delta * 0.3;
-    mesh.current.rotation.y += delta * 0.12 + mouseCurrent.x * delta * 0.3;
-    
-    wire.current.rotation.x = -mesh.current.rotation.x * 1.2;
-    wire.current.rotation.y = -mesh.current.rotation.y * 1.2;
-    
-    glow.current.rotation.x = mesh.current.rotation.x * 1.1;
-    glow.current.rotation.y = mesh.current.rotation.y * 1.1;
-    
-    // Update shader
+
+    mesh.current.rotation.x += delta * 0.08 + mouseCurrent.y * delta * 0.4;
+    mesh.current.rotation.y += delta * 0.12 + mouseCurrent.x * delta * 0.4;
+    mesh.current.rotation.z = Math.sin(state.clock.elapsedTime * 0.1) * 0.1;
+
+    wire.current.rotation.x = -mesh.current.rotation.x * 1.3;
+    wire.current.rotation.y = -mesh.current.rotation.y * 1.3;
+    wire.current.rotation.z = mesh.current.rotation.z * 2;
+
+    glow.current.rotation.x = mesh.current.rotation.x * 1.15;
+    glow.current.rotation.y = mesh.current.rotation.y * 1.15;
+
     const mat = shaderMat as THREE.ShaderMaterial;
     mat.uniforms.uTime.value = state.clock.elapsedTime;
     mat.uniforms.uMouse.value.copy(mouseCurrent);
@@ -105,295 +95,206 @@ function RareTorusKnot() {
 
   return (
     <group>
-      {/* Main knot with shader */}
+      {/* Dark metallic core */}
       <mesh ref={mesh}>
-        <torusKnotGeometry args={[2, 0.5, 200, 40, 2, 3]} />
-        <meshPhysicalMaterial
-          color="#0a0a14"
-          metalness={0.9}
-          roughness={0.1}
-          clearcoat={1}
-          clearcoatRoughness={0.05}
-        />
+        <torusKnotGeometry args={[1.6, 0.4, 150, 36, 2, 3]} />
+        <meshPhysicalMaterial color="#080812" metalness={0.95} roughness={0.03} clearcoat={1} clearcoatRoughness={0.05} />
       </mesh>
-
-      {/* Wireframe overlay */}
+      {/* Wireframe ghost */}
       <mesh ref={wire}>
-        <torusKnotGeometry args={[2.1, 0.55, 100, 20, 2, 3]} />
-        <meshBasicMaterial color="#BFF549" wireframe transparent opacity={0.06} />
+        <torusKnotGeometry args={[1.65, 0.45, 80, 18, 2, 3]} />
+        <meshBasicMaterial color="#BFF549" wireframe transparent opacity={0.05} />
       </mesh>
-
-      {/* Outer glow shell with custom shader */}
+      {/* Additive glow shell */}
       <mesh ref={glow} material={shaderMat}>
-        <torusKnotGeometry args={[2.3, 0.7, 50, 10, 2, 3]} />
+        <torusKnotGeometry args={[1.85, 0.6, 64, 12, 2, 3]} />
       </mesh>
     </group>
   );
 }
 
-// ════════════════════════════════════════════════
-// PARTICLE FIELD
-// ════════════════════════════════════════════════
-function Particles({ count = 1500 }: { count?: number }) {
-  const ref = useRef<THREE.Points>(null);
-  const data = useMemo(() => {
-    const positions = new Float32Array(count * 3);
-    const colors = new Float32Array(count * 3);
-    const sizes = new Float32Array(count);
-    
-    const palette = [
-      new THREE.Color('#BFF549'),
-      new THREE.Color('#FACC15'),
-      new THREE.Color('#60A5FA'),
-      new THREE.Color('#a78bfa'),
-      new THREE.Color('#ffffff'),
-    ];
-    
-    for (let i = 0; i < count; i++) {
-      const i3 = i * 3;
-      const r = 8 + Math.random() * 25;
-      const theta = Math.random() * Math.PI * 2;
-      const phi = Math.acos(2 * Math.random() - 1);
-      positions[i3] = r * Math.sin(phi) * Math.cos(theta);
-      positions[i3 + 1] = r * Math.sin(phi) * Math.sin(theta);
-      positions[i3 + 2] = r * Math.cos(phi);
-      const c = palette[Math.floor(Math.random() * palette.length)];
-      colors[i3] = c.r;
-      colors[i3 + 1] = c.g;
-      colors[i3 + 2] = c.b;
-      sizes[i] = Math.random() * 0.15 + 0.02;
-    }
-    return { positions, colors, sizes };
-  }, [count]);
-
-  useFrame((state, delta) => {
-    if (!ref.current) return;
-    ref.current.rotation.y += delta * 0.02 + mouseCurrent.x * delta * 0.1;
-    ref.current.rotation.x += mouseCurrent.y * delta * 0.05;
-    // Gentle wave
-    const p = ref.current.geometry.attributes.position.array as Float32Array;
-    for (let i = 0; i < p.length; i += 3) {
-      p[i + 1] += Math.sin(state.clock.elapsedTime * 0.5 + i * 0.01) * 0.002;
-    }
-    ref.current.geometry.attributes.position.needsUpdate = true;
-  });
-
-  return (
-    <points ref={ref}>
-      <bufferGeometry>
-        <bufferAttribute attach="attributes-position" count={count} itemSize={3} array={data.positions} />
-        <bufferAttribute attach="attributes-color" count={count} itemSize={3} array={data.colors} />
-      </bufferGeometry>
-      <pointsMaterial vertexColors size={0.08} transparent opacity={0.6} sizeAttenuation blending={THREE.AdditiveBlending} depthWrite={false} />
-    </points>
-  );
-}
-
-// ════════════════════════════════════════════════
-// ORBITING RINGS
-// ════════════════════════════════════════════════
-function OrbitRings() {
-  const ref = useRef<THREE.Group>(null);
-  useFrame((state) => {
-    if (!ref.current) return;
-    ref.current.rotation.x = Math.sin(state.clock.elapsedTime * 0.1) * 0.15 + mouseCurrent.y * 0.2;
-    ref.current.rotation.z = Math.cos(state.clock.elapsedTime * 0.08) * 0.1 + mouseCurrent.x * 0.15;
+// ════════════════════════════════════════
+// ORBITAL RINGS
+// ════════════════════════════════════════
+function Rings() {
+  const g = useRef<THREE.Group>(null);
+  useFrame((s, d) => {
+    if (!g.current) return;
+    g.current.rotation.x += d * 0.04 + mouseCurrent.y * d * 0.15;
+    g.current.rotation.z += d * 0.03 + mouseCurrent.x * d * 0.12;
   });
   return (
-    <group ref={ref}>
-      {[1, 2, 3].map((i) => (
-        <mesh key={i} rotation={[Math.PI / 2 + i * 0.3, i * 0.5, 0]}>
-          <torusGeometry args={[2.8 + i * 0.5, 0.008, 8, 200]} />
-          <meshBasicMaterial color="#BFF549" transparent opacity={0.12} />
+    <group ref={g}>
+      {[0,1,2,3].map(i => (
+        <mesh key={i} rotation={[Math.PI/2+i*0.3, i*0.7, i*0.2]}>
+          <torusGeometry args={[2.8+i*0.5, 0.006, 8, 180]} />
+          <meshBasicMaterial color="#BFF549" transparent opacity={0.18-i*0.035} />
         </mesh>
       ))}
     </group>
   );
 }
 
-// ════════════════════════════════════════════════
-// FLOATING SHARDS
-// ════════════════════════════════════════════════
-function Shards() {
-  const shards = useMemo(
-    () =>
-      Array.from({ length: 20 }, (_, i) => ({
-        id: i,
-        position: [(Math.random() - 0.5) * 14, (Math.random() - 0.5) * 14, (Math.random() - 0.5) * 6 - 2] as [number, number, number],
-        rotation: [Math.random() * Math.PI, Math.random() * Math.PI, 0] as [number, number, number],
-        scale: 0.1 + Math.random() * 0.3,
-        speed: 0.5 + Math.random(),
-      })),
-    []
-  );
-  return (
-    <>
-      {shards.map((s) => (
-        <Shard key={s.id} {...s} />
-      ))}
-    </>
-  );
+// ════════════════════════════════════════
+// PARTICLES (1500 star field)
+// ════════════════════════════════════════
+function Particles({ count = 1500 }: { count?: number }) {
+  const ref = useRef<THREE.Points>(null);
+  const d = useMemo(() => {
+    const p = new Float32Array(count * 3);
+    const c = new Float32Array(count * 3);
+    const pal = ['#BFF549','#FACC15','#60A5FA','#a78bfa','#ffffff'].map(h => new THREE.Color(h));
+    for (let i = 0; i < count; i++) {
+      const r = 10+Math.random()*25, φ = Math.random()*Math.PI*2, θ = Math.acos(2*Math.random()-1);
+      p[i*3]=r*Math.sin(θ)*Math.cos(φ); p[i*3+1]=r*Math.sin(θ)*Math.sin(φ); p[i*3+2]=r*Math.cos(θ);
+      const cl=pal[Math.floor(Math.random()*pal.length)];
+      c[i*3]=cl.r; c[i*3+1]=cl.g; c[i*3+2]=cl.b;
+    }
+    const bg = new THREE.BufferGeometry();
+    bg.setAttribute('position', new THREE.BufferAttribute(p, 3));
+    bg.setAttribute('color', new THREE.BufferAttribute(c, 3));
+    return bg;
+  }, [count]);
+
+  useFrame((s,d) => {
+    if (!ref.current) return;
+    ref.current.rotation.y += d*0.006+mouseCurrent.x*d*0.1;
+    ref.current.rotation.x += mouseCurrent.y*d*0.06;
+    const a = ref.current.geometry.attributes.position.array as Float32Array;
+    for (let i = 0; i < a.length; i += 3) {
+      a[i+1] += Math.sin(s.clock.elapsedTime*0.4+i*0.008)*0.0015;
+    }
+    ref.current.geometry.attributes.position.needsUpdate = true;
+  });
+
+  return <points ref={ref} geometry={d}>
+    <pointsMaterial size={0.045} vertexColors transparent={true} opacity={0.65} sizeAttenuation blending={THREE.AdditiveBlending} depthWrite={false} />
+  </points>;
 }
 
-function Shard({ position, rotation, scale, speed }: any) {
+// ════════════════════════════════════════
+// FLOATING SHARDS
+// ════════════════════════════════════════
+function Shards() {
+  const s = useMemo(() => Array.from({length:22}, (_,i) => ({
+    i, pos:[(Math.random()-0.5)*14,(Math.random()-0.5)*14,(Math.random()-0.5)*6-2] as [number,number,number],
+    sp:0.4+Math.random()*0.7, sc:0.05+Math.random()*0.2,
+  })), []);
+  return <>{s.map(x => <Shard key={x.i} pos={x.pos} sp={x.sp} sc={x.sc} />)}</>;
+}
+
+function Shard({ pos, sp, sc }: { pos:[number,number,number]; sp:number; sc:number }) {
   const ref = useRef<THREE.Mesh>(null);
-  useFrame((state) => {
+  useFrame(s => {
     if (!ref.current) return;
-    ref.current.position.y = position[1] + Math.sin(state.clock.elapsedTime * speed) * 0.4;
-    ref.current.rotation.x += 0.01;
-    ref.current.rotation.y += 0.015;
+    ref.current.position.y = pos[1]+Math.sin(s.clock.elapsedTime*sp)*0.5;
+    ref.current.rotation.x += 0.008; ref.current.rotation.y += 0.012;
   });
   return (
-    <mesh ref={ref} position={position} rotation={rotation} scale={scale}>
+    <mesh ref={ref} position={pos} scale={sc}>
       <octahedronGeometry />
-      <meshPhysicalMaterial color="#BFF549" metalness={0.8} roughness={0.2} transparent opacity={0.3} emissive="#BFF549" emissiveIntensity={0.05} />
+      <meshPhysicalMaterial color="#BFF549" metalness={0.7} roughness={0.3} emissive="#BFF549" emissiveIntensity={0.06} transparent opacity={0.35} />
     </mesh>
   );
 }
 
-// ════════════════════════════════════════════════
-// MOUSE CAMERA
-// ════════════════════════════════════════════════
-function CameraRig() {
-  const { camera } = useThree();
-  useFrame(() => {
-    camera.position.x = mouseCurrent.x * 0.5;
-    camera.position.y = mouseCurrent.y * 0.3;
-    camera.lookAt(0, 0, 0);
-  });
-  return null;
+// ════════════════════════════════════════
+// CAMERA MOUSE TRACKING
+// ════════════════════════════════════════
+function CameraCtrl() { const { camera } = useThree(); useFrame(() => {
+  camera.position.x = mouseCurrent.x*0.4; camera.position.y = mouseCurrent.y*0.25; camera.lookAt(0,0,0);
+}); return null; }
+
+// ════════════════════════════════════════
+// LIGHT FOLLOW MOUSE
+// ════════════════════════════════════════
+function MouseLight() {
+  const ref = useRef<THREE.PointLight>(null);
+  useEffect(() => { const iv = setInterval(() => { if (ref.current) ref.current.position.set(mouseCurrent.x*6, mouseCurrent.y*6, 6); }, 16); return () => clearInterval(iv); }, []);
+  return <pointLight ref={ref} position={[0,0,6]} intensity={0.9} color="#BFF549" />;
 }
 
-// ════════════════════════════════════════════════
-// MAIN HERO
-// ════════════════════════════════════════════════
+// ════════════════════════════════════════
+// MAIN EXPORT
+// ════════════════════════════════════════
 export default function ThreeHero() {
-  const [ready, setReady] = useState(false);
+  const [m, setM] = useState(false);
+  useEffect(() => { setM(true); }, []);
 
-  useEffect(() => { setReady(true); }, []);
-
-  const handlePointerMove = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
-    mouseTarget.x = (e.clientX / window.innerWidth) * 2 - 1;
-    mouseTarget.y = -(e.clientY / window.innerHeight) * 2 + 1;
+  const onMove = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
+    mouseTarget.x = (e.clientX / window.innerWidth)*2-1;
+    mouseTarget.y = -(e.clientY / window.innerHeight)*2+1;
   }, []);
 
-  // Scroll-based fade
-  const [scrollOpacity, setScrollOpacity] = useState(1);
+  const [heroOp, setHeroOp] = useState(1);
+  const [contentOp, setContentOp] = useState(0);
   useEffect(() => {
-    const onScroll = () => {
-      const progress = Math.min(window.scrollY / 800, 1);
-      setScrollOpacity(1 - progress);
+    const fn = () => {
+      setHeroOp(Math.max(0, 1-window.scrollY/700));
+      setContentOp(Math.min(1, window.scrollY/350));
     };
-    window.addEventListener('scroll', onScroll, { passive: true });
-    return () => window.removeEventListener('scroll', onScroll);
+    window.addEventListener('scroll', fn, { passive: true });
+    return () => window.removeEventListener('scroll', fn);
   }, []);
 
-  if (!ready) return (
-    <div className="fixed inset-0 z-[1] bg-[#06060F]" style={{
-      backgroundImage: 'radial-gradient(circle at 50% 50%, #0d0d2b 0%, #06060F 100%)',
-    }} />
-  );
+  if (!m) return null;
 
   return (
-    <div className="fixed inset-0 z-[1] overflow-hidden" onPointerMove={handlePointerMove} style={{ background: '#06060F' }}>
-      <Canvas
-        camera={{ position: [0, 0, 8], fov: 45, near: 0.1, far: 100 }}
-        dpr={[1, 1.5]}
-        gl={{ antialias: true, alpha: true, toneMapping: THREE.ACESFilmicToneMapping, toneMappingExposure: 1.2 }}
-      >
-        <CameraRig />
+    <>
+      {/* ─── 3D HERO ─── */}
+      <div className="fixed inset-0 z-[1] overflow-hidden" onPointerMove={onMove} style={{ background: '#050510', opacity: heroOp, transition: 'opacity 0.3s ease' }}>
+        <Canvas camera={{ position:[0,0,7.5], fov:50, near:0.1, far:80 }} dpr={[1,1.5]} gl={{ antialias:true, alpha:true, toneMapping:THREE.ACESFilmicToneMapping, toneMappingExposure:1.2 }}>
+          <CameraCtrl />
+          <ambientLight intensity={0.12} />
+          <pointLight position={[8,8,8]} intensity={1.2} color="#BFF549" />
+          <pointLight position={[-8,-4,4]} intensity={0.6} color="#FACC15" />
+          <pointLight position={[0,6,-4]} intensity={0.3} color="#60A5FA" />
+          <MouseLight />
+          <fog attach="fog" args={['#050510', 12, 25]} />
 
-        {/* Lighting — multi-source cinematic */}
-        <ambientLight intensity={0.15} />
-        <pointLight position={[10, 10, 10]} intensity={1} color="#BFF549" />
-        <pointLight position={[-10, -5, 5]} intensity={0.5} color="#FACC15" />
-        <pointLight position={[0, 10, -5]} intensity={0.3} color="#60A5FA" />
-        <pointLight position={[5, -8, 3]} intensity={0.2} color="#a78bfa" />
-        {/* Mouse-follow light */}
-        <pointLight position={[mouseCurrent.x * 5, mouseCurrent.y * 5, 5]} intensity={0.8} color="#BFF549" />
+          <HeroKnot />
+          <Rings />
+          <Particles count={1500} />
+          <Shards />
+        </Canvas>
 
-        <fog attach="fog" args={['#06060F', 12, 25]} />
+        {/* Bottom fade */}
+        <div className="absolute bottom-0 left-0 right-0 pointer-events-none z-[2]" style={{ height:'40vh', background:'linear-gradient(to top,#050510 0%,transparent 100%)' }} />
 
-        {/* Scene objects */}
-        <RareTorusKnot />
-        <OrbitRings />
-        <Particles count={1500} />
-        <Shards />
-      </Canvas>
+        {/* Vignette */}
+        <div className="absolute inset-0 pointer-events-none z-[3]" style={{ background:'radial-gradient(ellipse at center,transparent 38%,rgba(5,5,16,0.65) 100%)' }} />
 
-      {/* CSS overlay elements (non-WebGL) */}      
-      {/* Bottom gradient for scroll transition */}
-      <div
-        className="absolute bottom-0 left-0 right-0 pointer-events-none"
-        style={{ height: '40vh', background: 'linear-gradient(to top, #06060F 0%, transparent 100%)', zIndex: 2 }}
-      />
-
-      {/* Vignette */}
-      <div className="absolute inset-0 pointer-events-none" style={{
-        background: 'radial-gradient(ellipse at center, transparent 40%, rgba(6,6,15,0.6) 100%)',
-        zIndex: 3,
-      }} />
-
-      {/* Title overlay */}
-      <div
-        className="absolute inset-0 z-[4] flex flex-col items-center justify-center pointer-events-none select-none"
-        style={{
-          perspective: '1000px',
-          opacity: scrollOpacity,
-          transition: 'opacity 0.3s ease-out',
-        }}
-      >
-        <h1
-          style={{
-            fontFamily: "'Cinzel Decorative', 'Cinzel', serif",
-            fontWeight: 900,
-            fontSize: 'clamp(3rem, 10vw, 8rem)',
-            lineHeight: 0.85,
-            letterSpacing: '0.1em',
-            background: 'linear-gradient(180deg, #FFD700 0%, #D4AF37 30%, #B8860B 60%, #8B6914 100%)',
-            WebkitBackgroundClip: 'text',
-            WebkitTextFillColor: 'transparent',
-            backgroundClip: 'text',
-            filter: 'drop-shadow(0 0 40px rgba(212,175,55,0.5)) drop-shadow(0 0 80px rgba(255,215,0,0.2))',
-            transform: `rotateX(${mouseCurrent.y * -6}deg) rotateY(${mouseCurrent.x * 6}deg)`,
-            transition: 'transform 0.15s ease-out',
-          }}
-        >
-          LRYS
-        </h1>
-        
-        <p style={{
-          fontFamily: "'Space Grotesk', sans-serif",
-          fontSize: 'clamp(0.6rem, 1.2vw, 0.9rem)',
-          color: 'rgba(191,245,73,0.5)',
-          letterSpacing: '0.3em',
-          textTransform: 'uppercase',
-          marginTop: 16,
-          textShadow: '0 0 20px rgba(191,245,73,0.3)',
-        }}>
-          Kings Dripping Swag • 2130 • The Future Is Now
-        </p>
-
-        {/* Animated line */}
-        <div style={{
-          width: '120px',
-          height: '1px',
-          marginTop: 20,
-          background: 'linear-gradient(90deg, transparent, #BFF549, #FFD700, #BFF549, transparent)',
-          boxShadow: '0 0 10px rgba(191,245,73,0.5)',
-          animation: 'heroLinePulse 3s ease-in-out infinite',
-        }} />
-
-        <p style={{
-          fontFamily: "'JetBrains Mono', monospace",
-          fontSize: '0.55rem',
-          color: 'rgba(255,255,255,0.15)',
-          letterSpacing: '0.15em',
-          marginTop: 12,
-        }}>
-          MOVE YOUR MOUSE — THE WORLD RESPONDS
-        </p>
+        {/* Title */}
+        <div className="absolute inset-0 z-[4] flex flex-col items-center justify-center pointer-events-none select-none" style={{ perspective:'1000px' }}>
+          <h1 style={{
+            fontFamily:"'Cinzel Decorative','Cinzel',serif", fontWeight:900, fontSize:'clamp(3.5rem,11vw,10rem)',
+            lineHeight:0.85, letterSpacing:'0.12em',
+            background:'linear-gradient(180deg,#FFD700 0%,#D4AF37 35%,#B8860B 65%,#8B6914 100%)',
+            WebkitBackgroundClip:'text', WebkitTextFillColor:'transparent', backgroundClip:'text',
+            filter:'drop-shadow(0 0 50px rgba(212,175,55,0.6)) drop-shadow(0 0 100px rgba(255,215,0,0.3))',
+            transform:`rotateX(${mouseCurrent.y*-6}deg) rotateY(${mouseCurrent.x*6}deg) translateZ(50px)`,
+            transition:'transform 0.12s ease-out',
+          }}>LRYS</h1>
+          <p style={{
+            fontFamily:"'Space Grotesk',sans-serif", fontSize:'clamp(0.6rem,1.3vw,1rem)',
+            color:'rgba(191,245,73,0.45)', letterSpacing:'0.35em', textTransform:'uppercase',
+            marginTop:16, textShadow:'0 0 25px rgba(191,245,73,0.3)',
+          }}>Kings Dripping Swag • 2130</p>
+          <div style={{ width:`${50+Math.abs(mouseCurrent.x)*40}px`, height:'1px',
+            background:'linear-gradient(90deg,transparent,#BFF549,#FFD700,#BFF549,transparent)',
+            marginTop:16, boxShadow:'0 0 12px #BFF54980', borderRadius:1 }} />
+          <p style={{
+            fontFamily:"'JetBrains Mono',monospace", fontSize:'0.55rem',
+            color:'rgba(255,255,255,0.12)', letterSpacing:'0.2em', marginTop:10,
+          }}>MOVE YOUR MOUSE — SPIN THE WORLD</p>
+        </div>
       </div>
-    </div>
+
+      {/* ─── CONTENT BELOW ─── */}
+      <div style={{ opacity: contentOp, transition: 'opacity 0.5s ease', position: 'relative', zIndex: 10 }}>
+        <div style={{ height: '100vh' }} />
+        {/* Spacer so content starts after hero fade */}
+      </div>
+    </>
   );
 }
