@@ -2,17 +2,16 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import dynamic from 'next/dynamic';
-import ScrollReveal from '@/components/ScrollReveal';
 
+const VexelHero = dynamic(() => import('@/components/VexelHero'), { ssr: false });
 const AmbientSound = dynamic(() => import('@/components/AmbientSound'), { ssr: false });
 
 // ═══════════════════════════════════════════
-// 🎨 FUTURISTIC KDS COMMUNITY HUB
+// 🎨 VEXEL x KDS — IMMERSIVE SCROLL
 //
-// Facebook-level social features, 2130 aesthetic.
-// Glass morphism, neon accents, holographic depth.
-// App grid, live feed, AI assistant, trending,
-// database stats, groups, marketplace, profiles.
+// Vexel 3D background: particle constellation, floating wireframes
+// Community hub UI on glass panels
+// Scroll = glitch chaos, screen tearing, RGB split
 // ═══════════════════════════════════════════
 
 // ─── SVG Icons (inline, zero deps) ───
@@ -41,26 +40,18 @@ const Icon: Record<string, JSX.Element> = {
   live: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"><circle cx="12" cy="12" r="2"/><path d="M16.24 7.76a6 6 0 010 8.49"/><path d="M7.76 16.24a6 6 0 010-8.49"/><path d="M19.07 4.93a10 10 0 010 14.14"/><path d="M4.93 19.07a10 10 0 010-14.14"/></svg>,
   trophy: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"><path d="M6 9H4.5a2.5 2.5 0 010-5H6"/><path d="M18 9h1.5a2.5 2.5 0 000-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20 17 22"/><path d="M18 2H6v7a6 6 0 0012 0V2z"/></svg>,
   bolt: <svg viewBox="0 0 24 24" fill="currentColor"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>,
-  crown: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"><path d="M2 20h20L19 8l-5 6-2-8-2 8-5-6-3 12z"/></svg>,
 };
 
-// ─── App Icon Component ───
-function AppIcon({ icon, label, color, badge, glow }: { icon: string; label: string; color: string; badge?: string; glow?: string }) {
+// ─── App Icon ───
+function AppIcon({ icon, label, color, badge }: { icon: string; label: string; color: string; badge?: string }) {
   const [hover, setHover] = useState(false);
   return (
-    <button
-      onMouseEnter={() => setHover(true)}
-      onMouseLeave={() => setHover(false)}
-      style={{
-        position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'center',
+    <button onMouseEnter={() => setHover(true)} onMouseLeave={() => setHover(false)}
+      style={{ position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'center',
         gap: 6, padding: 14, borderRadius: 16, cursor: 'pointer',
         background: hover ? 'rgba(255,255,255,0.06)' : 'rgba(255,255,255,0.02)',
         border: `1px solid ${hover ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.04)'}`,
-        transition: 'all 0.2s ease',
-        minWidth: 90,
-        boxShadow: hover ? `0 0 ${glow ? '20px' : '0px'} ${color}15` : 'none',
-      }}
-    >
+        transition: 'all 0.2s', minWidth: 90 }}>
       <div style={{ width: 36, height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center',
         color, transform: hover ? 'scale(1.1)' : 'scale(1)', transition: 'transform 0.2s' }}>
         {Icon[icon] || Icon.star}
@@ -74,14 +65,13 @@ function AppIcon({ icon, label, color, badge, glow }: { icon: string; label: str
 }
 
 // ─── Post Component ───
-function Post({ avatar, name, time, content, type, reactions, comments, shares, online, isLive }: any) {
+function Post({ avatar, name, time, content, type, reactions, comments, shares, isLive }: any) {
   return (
     <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 14, overflow: 'hidden',
-      transition: 'border-color 0.2s' }}>
-      {/* Header */}
+      transition: 'border-color 0.2s', backdropFilter: 'blur(8px)' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '14px 16px 10px' }}>
-        <div style={{ width: 40, height: 40, borderRadius: '50%', background: 'rgba(255,255,255,0.06)', border: `2px solid ${online ? '#2ECC8F' : isLive ? '#D95555' : 'transparent'}`,
-          display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16, overflow: 'hidden' }}>
+        <div style={{ width: 40, height: 40, borderRadius: '50%', background: 'rgba(255,255,255,0.06)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16, border: '2px solid transparent' }}>
           {avatar || '🧠'}
         </div>
         <div style={{ flex: 1 }}>
@@ -91,27 +81,20 @@ function Post({ avatar, name, time, content, type, reactions, comments, shares, 
           </div>
           <span style={{ color: 'rgba(255,255,255,0.3)', fontSize: 10 }}>{time}</span>
         </div>
-        <button style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.3)', cursor: 'pointer', padding: 4 }}>
-          {Icon.more}
-        </button>
       </div>
-
-      {/* Content */}
       <div style={{ padding: '0 16px 10px' }}>
         <p style={{ color: 'rgba(255,255,255,0.60)', fontSize: 12, lineHeight: 1.5 }}>{content}</p>
       </div>
-      {type === 'image' && <div style={{ height: 220, background: 'linear-gradient(135deg, rgba(191,245,73,0.08) 0%, rgba(96,165,250,0.08) 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', borderTop: '1px solid rgba(255,255,255,0.06)', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+      {type === 'image' && <div style={{ height: 200, background: 'linear-gradient(135deg, rgba(191,245,73,0.08) 0%, rgba(96,165,250,0.08) 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <span style={{ fontSize: 48, opacity: 0.3 }}>🌌</span>
       </div>}
-      {type === 'video' && <div style={{ height: 220, background: 'linear-gradient(135deg, rgba(96,165,250,0.08) 0%, rgba(167,139,250,0.08) 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', borderTop: '1px solid rgba(255,255,255,0.06)', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
-        <span style={{ fontSize: 48, opacity: 0.3, borderRadius: '50%', border: '2px solid rgba(255,255,255,0.15)', width: 64, height: 64, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>▶</span>
+      {type === 'video' && <div style={{ height: 200, background: 'linear-gradient(135deg, rgba(96,165,250,0.08) 0%, rgba(167,139,250,0.08) 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <span style={{ fontSize: 36, opacity: 0.5 }}>▶</span>
       </div>}
-
-      {/* Actions */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '8px 12px', borderTop: '1px solid rgba(255,255,255,0.04)' }}>
         {[{ icon: 'thumbs', label: reactions }, { icon: 'comment', label: comments }, { icon: 'share', label: shares }].map((a, i) => (
           <button key={i} style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '5px 10px', borderRadius: 6,
-            background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.04)', color: 'rgba(255,255,255,0.38)', cursor: 'pointer', flex: i === 0 ? undefined : undefined }}>
+            background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.04)', color: 'rgba(255,255,255,0.38)', cursor: 'pointer' }}>
             <span style={{ width: 14, height: 14 }}>{Icon[a.icon]}</span>
             <span style={{ fontSize: 10 }}>{a.label}</span>
           </button>
@@ -136,259 +119,230 @@ export default function CommunityHub() {
   const navItems = [
     { id: 'feed', icon: 'feed', label: 'Feed' },
     { id: 'groups', icon: 'people', label: 'Groups', badge: '3' },
-    { id: 'marketplace', icon: 'market', label: 'Market' },
-    { id: 'database', icon: 'database', label: 'Database' },
-    { id: 'ai-lab', icon: 'ai', label: 'AI Lab' },
-    { id: 'live', icon: 'live', label: 'Live' },
-    { id: 'events', icon: 'events', label: 'Events' },
-    { id: 'code', icon: 'code', label: 'Code Studio' },
-    { id: 'security', icon: 'shield', label: 'Security' },
-    { id: 'games', icon: 'game', label: 'Games' },
-    { id: 'global', icon: 'globe', label: 'Global' },
+    { id: 'live', icon: 'live', label: 'Live', badge: '1' },
+    { id: 'market', icon: 'market', label: 'Market' },
+    { id: 'ai', icon: 'ai', label: 'AI Lab' },
+    { id: 'database', icon: 'database', label: 'DB' },
   ];
 
   const posts = [
-    { avatar: '🤖', name: 'Lord Sav', time: '2 min ago', content: 'Just deployed the new 3D parallax hero for kingsdrippingswag.io 🚀 The camera flies through the KDS universe as you scroll. Check it out!', type: 'image', reactions: '847', comments: '124', shares: '56', online: true },
-    { avatar: '👑', name: 'Omar Estrada', time: '15 min ago', content: 'Building an AI community that actually works. No bots, no spam — real humans, real connections, real value. Who\'s in?', type: '', reactions: '2.1K', comments: '342', shares: '128', online: true },
-    { avatar: '🎨', name: 'Alan Velasquez', time: '28 min ago', content: 'UI/UX update: Mission Control dashboard is live. 7 pages, dark mode, XP system. This is insane for a 48-hour build 😤', type: 'image', reactions: '623', comments: '89', shares: '34', online: true },
-    { avatar: '🔴', name: 'KDS Official', time: 'Now', content: '🔴 LIVE NOW: Community showcase event — see what members built this week!', type: 'video', reactions: '1.8K', comments: '456', shares: '89', isLive: true, online: true },
-    { avatar: '🛠️', name: 'ClawCode Bot', time: '1h ago', content: 'New tool deployed: Automated CI/CD pipeline to Hostinger. Push to GitHub → auto build → auto deploy. Zero manual steps.', type: '', reactions: '234', comments: '45', shares: '12' },
+    { avatar: '🤖', name: 'Lord Sav', time: '2 min ago', content: 'Just deployed the Vexel-style 3D constellation. Scroll down and watch it go completely insane. Particles everywhere, camera glitching — pure digital chaos 🔥', type: 'image', reactions: '2.4K', comments: '347', shares: '189' },
+    { avatar: '👑', name: 'Omar Estrada', time: '15 min ago', content: 'Building a community that actually works. No bots, no spam — real humans, real connections.', type: '', reactions: '5.1K', comments: '892', shares: '412' },
+    { avatar: '🎨', name: 'Alan Velasquez', time: '28 min ago', content: 'The 3D particle network is live. Hover to attract particles, scroll to trigger glitch chaos.', type: 'image', reactions: '1.2K', comments: '234', shares: '67' },
+    { avatar: '🔴', name: 'KDS Official', time: 'Now', content: '🔴 LIVE: Community showcase — see what members built this week!', type: 'video', reactions: '3.8K', comments: '1.2K', shares: '245', isLive: true },
+    { avatar: '🛠️', name: 'ClawCode Bot', time: '1h ago', content: 'CI/CD pipeline auto-deployed. Zero manual steps.', type: '', reactions: '456', comments: '89', shares: '23' },
   ];
 
   const trending = [
     { tag: '#AIAgents', posts: '12.4K', color: '#BFF549' },
     { tag: '#KDSBuild', posts: '8.2K', color: '#FACC15' },
-    { tag: '#OpenSource', posts: '6.8K', color: '#60A5FA' },
-    { tag: '#ClawCode', posts: '5.1K', color: '#a78bfa' },
-    { tag: '#2130', posts: '3.9K', color: '#f472b6' },
+    { tag: '#ClawCode', posts: '6.1K', color: '#60A5FA' },
+    { tag: '#2130', posts: '3.9K', color: '#a78bfa' },
   ];
 
-  const suggestions = [
-    { name: 'DevSarah', role: 'Full Stack Dev', avatar: '👩‍💻', status: 'Online' },
-    { name: 'CryptoMax', role: 'AI Researcher', avatar: '🧬', status: 'Online' },
-    { name: 'PixelNinja', role: '3D Artist', avatar: '🎮', status: '15m ago' },
+  const online = [
+    { name: 'DevSarah', role: 'Full Stack', avatar: '👩‍💻' },
+    { name: 'CryptoMax', role: 'AI Research', avatar: '🧬' },
+    { name: 'PixelNinja', role: '3D Artist', avatar: '🎮' },
+    { name: 'DataWhale', role: 'Analytics', avatar: '🐋' },
   ];
 
   return (
-    <div style={{ background: '#050510', minHeight: '100vh', color: 'rgba(255,255,255,0.87)', fontFamily: "'Inter', system-ui, sans-serif" }}>
-      <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
-        * { box-sizing: border-box; margin: 0; padding: 0; -webkit-font-smoothing: antialiased; }
-        ::-webkit-scrollbar { width: 5px; }
-        ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.06); border-radius: 3px; }
-        ::selection { background: rgba(191,245,73,0.3); }
-        @keyframes pulse{0%,100%{opacity:.3;transform:scale(1)}50%{opacity:1;transform:scale(1.2)}}
-        @keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
-        @keyframes shimmer{0%{background-position:-200% 0}100%{background-position:200% 0}}
-        .mc-f { animation: fadeIn 0.4s ease both; }
-        .mc-glow { box-shadow: 0 0 20px rgba(191,245,73,0.1); }
-      `}</style>
+    <>
+      {/* ─── VEXEL 3D BACKGROUND ─── */}
+      <VexelHero />
 
-      {/* ═══ TOP BAR ═══ */}
-      <header style={{ position: 'fixed', top: 0, left: 0, right: 0, zIndex: 50,
-        background: 'rgba(5,5,16,0.8)', backdropFilter: 'blur(20px)', borderBottom: '1px solid rgba(255,255,255,0.06)',
-        height: 52, display: 'flex', alignItems: 'center', padding: '0 16px', justifyContent: 'space-between' }}>
-        {/* Logo + Search */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <div style={{ width: 30, height: 30, borderRadius: 8, background: 'rgba(191,245,73,0.12)', border: '1px solid rgba(191,245,73,0.2)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#BFF549', fontWeight: 900, fontSize: 13 }}>K</div>
-            <span style={{ fontWeight: 800, fontSize: 15, letterSpacing: '-0.02em' }}>
-              <span style={{ color: '#BFF549' }}>KDS</span>
-              <span style={{ color: 'rgba(255,255,255,0.5)', fontWeight: 400, fontSize: 12, marginLeft: 6 }}>2130</span>
-            </span>
+      {/* ─── SCROLLABLE CONTENT (transparent bg, 3D shows through) ─── */}
+      <div style={{ position: 'relative', zIndex: 10, minHeight: '100vh' }}>
+        {/* TOP BAR */}
+        <header style={{ position: 'fixed', top: 0, left: 0, right: 0, zIndex: 50,
+          background: 'rgba(5,5,16,0.7)', backdropFilter: 'blur(20px)', borderBottom: '1px solid rgba(255,255,255,0.06)',
+          height: 52, display: 'flex', alignItems: 'center', padding: '0 16px', justifyContent: 'space-between' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <div style={{ width: 30, height: 30, borderRadius: 8, background: 'rgba(191,245,73,0.12)', border: '1px solid rgba(191,245,73,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#BFF549', fontWeight: 900, fontSize: 13 }}>K</div>
+              <span style={{ fontWeight: 800, fontSize: 15 }}>
+                <span style={{ color: '#BFF549' }}>KDS</span>
+                <span style={{ color: 'rgba(255,255,255,0.5)', fontWeight: 400, fontSize: 12, marginLeft: 6 }}>2130</span>
+              </span>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 8, padding: '6px 12px' }}>
+              <span style={{ width: 14, height: 14, color: 'rgba(255,255,255,0.3)' }}>{Icon.search}</span>
+              <input placeholder="Search KDS..." style={{ background: 'none', border: 'none', outline: 'none', color: 'rgba(255,255,255,0.6)', fontSize: 12, width: 180 }} />
+            </div>
           </div>
-          {/* Search */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'rgba(255,255,255,0.04)',
-            border: '1px solid rgba(255,255,255,0.06)', borderRadius: 8, padding: '6px 12px', minWidth: 220 }}>
-            <span style={{ width: 14, height: 14, color: 'rgba(255,255,255,0.3)' }}>{Icon.search}</span>
-            <input placeholder="Search KDS..." style={{ background: 'none', border: 'none', outline: 'none', color: 'rgba(255,255,255,0.6)', fontSize: 12, width: '100%' }} />
+          <div style={{ display: 'flex', gap: 2 }}>
+            {navItems.map(n => (
+              <button key={n.id} onClick={() => setActiveNav(n.id)} style={{ width: 44, height: 40, display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: 8, cursor: 'pointer',
+                background: activeNav === n.id ? 'rgba(191,245,73,0.08)' : 'transparent',
+                borderBottom: activeNav === n.id ? '2px solid #BFF549' : '2px solid transparent',
+                color: activeNav === n.id ? '#BFF549' : 'rgba(255,255,255,0.4)', transition: 'all 0.2s' }}>
+                <span style={{ width: 18, height: 18 }}>{Icon[n.icon]}</span>
+              </button>
+            ))}
           </div>
-        </div>
-
-        {/* Center nav indicators */}
-        <div style={{ display: 'flex', gap: 2 }}>
-          {navItems.slice(0, 5).map(n => (
-            <button key={n.id} onClick={() => setActiveNav(n.id)} style={{ width: 44, height: 40, display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: 8, cursor: 'pointer',
-              background: activeNav === n.id ? 'rgba(191,245,73,0.08)' : 'transparent',
-              borderBottom: activeNav === n.id ? '2px solid #BFF549' : '2px solid transparent',
-              color: activeNav === n.id ? '#BFF549' : 'rgba(255,255,255,0.4)',
-              transition: 'all 0.2s' }}>
-              <span style={{ width: 18, height: 18 }}>{Icon[n.icon]}</span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+            <button style={{ position: 'relative', width: 34, height: 34, borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.06)', color: 'rgba(255,255,255,0.5)', cursor: 'pointer' }}>
+              <span style={{ width: 16, height: 16 }}>{Icon.chat}</span>
+              <span style={{ position: 'absolute', top: -3, right: -3, width: 15, height: 15, borderRadius: '50%', background: '#D95555', color: '#fff', fontSize: 8, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>4</span>
             </button>
-          ))}
-        </div>
-
-        {/* Right: notifications, msgs, profile */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-          {[{ icon: 'chat', badge: '4' }, { icon: 'bell', badge: '12' }].map((n, i) => (
-            <button key={i} style={{ position: 'relative', width: 34, height: 34, borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center',
-              background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.06)', color: 'rgba(255,255,255,0.5)', cursor: 'pointer' }}>
-              <span style={{ width: 16, height: 16 }}>{Icon[n.icon]}</span>
-              {n.badge && <span style={{ position: 'absolute', top: -3, right: -3, width: 15, height: 15, borderRadius: '50%', background: '#D95555', color: '#fff', fontSize: 8, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{n.badge}</span>}
+            <button style={{ position: 'relative', width: 34, height: 34, borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.06)', color: 'rgba(255,255,255,0.5)', cursor: 'pointer' }}>
+              <span style={{ width: 16, height: 16 }}>{Icon.bell}</span>
+              <span style={{ position: 'absolute', top: -3, right: -3, width: 15, height: 15, borderRadius: '50%', background: '#D95555', color: '#fff', fontSize: 8, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>7</span>
             </button>
-          ))}
-          <div style={{ width: 30, height: 30, borderRadius: '50%', background: 'rgba(191,245,73,0.1)', border: '1px solid rgba(191,245,73,0.2)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14 }}>🧠</div>
-        </div>
-      </header>
+            <div style={{ width: 30, height: 30, borderRadius: '50%', background: 'rgba(191,245,73,0.1)', border: '1px solid rgba(191,245,73,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14 }}>🧠</div>
+          </div>
+        </header>
 
-      {/* ═══ MAIN LAYOUT ═══ */}
-      <div style={{ display: 'flex', paddingTop: 52, minHeight: '100vh' }}>
-
-        {/* ─── LEFT SIDEBAR ─── */}
-        <aside style={{ width: 240, position: 'fixed', top: 52, left: 0, bottom: 0, padding: 16,
-          borderRight: '1px solid rgba(255,255,255,0.04)', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 4 }}>
-
-          {/* Profile card */}
-          <div className="mc-f" style={{ background: 'rgba(191,245,73,0.04)', border: '1px solid rgba(191,245,73,0.08)', borderRadius: 14, padding: 14, marginBottom: 12 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
-              <div style={{ width: 36, height: 36, borderRadius: '50%', background: 'rgba(255,255,255,0.06)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16, border: '2px solid #BFF549' }}>🧠</div>
-              <div>
-                <div style={{ color: 'rgba(255,255,255,0.87)', fontSize: 13, fontWeight: 600 }}>LORDBurnItDown</div>
-                <div style={{ color: 'rgba(255,255,255,0.3)', fontSize: 9 }}>Founder • Level 7</div>
+        {/* MAIN */}
+        <div style={{ display: 'flex', paddingTop: 52 }}>
+          {/* LEFT SIDEBAR */}
+          <aside style={{ position: 'fixed', top: 52, left: 0, bottom: 0, width: 240, padding: 16, borderRight: '1px solid rgba(255,255,255,0.04)', overflowY: 'auto',
+            background: 'rgba(5,5,16,0.6)', backdropFilter: 'blur(16px)' }}>
+            <div style={{ background: 'rgba(191,245,73,0.04)', border: '1px solid rgba(191,245,73,0.08)', borderRadius: 14, padding: 14, marginBottom: 16 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
+                <div style={{ width: 36, height: 36, borderRadius: '50%', background: 'rgba(255,255,255,0.06)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16, border: '2px solid #BFF549' }}>🧠</div>
+                <div>
+                  <div style={{ color: 'rgba(255,255,255,0.87)', fontSize: 13, fontWeight: 600 }}>LORDBurnItDown</div>
+                  <div style={{ color: 'rgba(255,255,255,0.3)', fontSize: 9 }}>Founder • Level 7</div>
+                </div>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                {[{ l: 'Posts', v: '47' }, { l: 'Friends', v: '2.1K' }, { l: 'XP', v: '647' }].map((s, i) => (
+                  <div key={i} style={{ textAlign: 'center' }}>
+                    <div style={{ color: '#BFF549', fontSize: 12, fontWeight: 700 }}>{s.v}</div>
+                    <div style={{ color: 'rgba(255,255,255,0.25)', fontSize: 8 }}>{s.l}</div>
+                  </div>
+                ))}
               </div>
             </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-              {[{ l: 'Posts', v: '47' }, { l: 'Friends', v: '2.1K' }, { l: 'XP', v: '647' }].map((s, i) => (
-                <div key={i} style={{ textAlign: 'center' }}>
-                  <div style={{ color: '#BFF549', fontSize: 12, fontWeight: 700 }}>{s.v}</div>
-                  <div style={{ color: 'rgba(255,255,255,0.25)', fontSize: 8 }}>{s.l}</div>
+            {[{ id: 'feed', i: 'feed', l: 'Feed' }, { id: 'groups', i: 'people', l: 'Groups', b: '3' }, { id: 'live', i: 'live', l: 'Live', b: '1' },
+              { id: 'market', i: 'market', l: 'Market' }, { id: 'ai', i: 'ai', l: 'AI Lab' }, { id: 'db', i: 'database', l: 'Database' },
+              { id: 'code', i: 'code', l: 'Code' }, { id: 'events', i: 'events', l: 'Events' }, { id: 'game', i: 'game', l: 'Games' },
+              { id: 'globe', i: 'globe', l: 'Global' }, { id: 'shield', i: 'shield', l: 'Security' }
+            ].map((n, i) => (
+              <button key={n.id} onClick={() => setActiveNav(n.id)} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 10px', borderRadius: 10, cursor: 'pointer',
+                background: activeNav === n.id ? 'rgba(191,245,73,0.06)' : 'transparent',
+                color: activeNav === n.id ? '#BFF549' : 'rgba(255,255,255,0.45)',
+                fontSize: 12, fontWeight: activeNav === n.id ? 600 : 400, width: '100%', transition: 'all 0.15s',
+                fontFamily: "'Inter', sans-serif", border: 'none' }}>
+                <span style={{ width: 18, height: 18 }}>{Icon[n.i]}</span>
+                <span>{n.l}</span>
+                {n.b && <span style={{ marginLeft: 'auto', background: '#D95555', color: '#fff', fontSize: 8, fontWeight: 700, padding: '1px 5px', borderRadius: 4 }}>{n.b}</span>}
+              </button>
+            ))}
+          </aside>
+
+          {/* FEED */}
+          <main style={{ flex: 1, marginLeft: 240, marginRight: 280, padding: 20, maxWidth: '100%', overflowX: 'hidden' }}>
+            {/* App Grid */}
+            <div style={{ background: 'rgba(5,5,16,0.5)', backdropFilter: 'blur(16px)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 16, padding: 14, marginBottom: 16 }}>
+              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', justifyContent: 'center' }}>
+                <AppIcon icon="feed" label="Feed" color="#BFF549" />
+                <AppIcon icon="chat" label="Messages" color="#60A5FA" badge="4" />
+                <AppIcon icon="live" label="Live" color="#D95555" />
+                <AppIcon icon="market" label="Market" color="#FACC15" />
+                <AppIcon icon="database" label="Database" color="#a78bfa" />
+                <AppIcon icon="ai" label="AI Lab" color="#f472b6" />
+                <AppIcon icon="video" label="Videos" color="#34d399" />
+                <AppIcon icon="game" label="Games" color="#fb923c" />
+                <AppIcon icon="code" label="Code Studio" color="#38bdf8" />
+                <AppIcon icon="events" label="Events" color="#fbbf24" />
+                <AppIcon icon="shield" label="Security" color="#f87171" />
+                <AppIcon icon="globe" label="Global" color="#a3e635" />
+              </div>
+            </div>
+
+            {/* Create Post */}
+            <div style={{ background: 'rgba(5,5,16,0.5)', backdropFilter: 'blur(16px)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 14, padding: 14, marginBottom: 16 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <div style={{ width: 36, height: 36, borderRadius: '50%', background: 'rgba(255,255,255,0.06)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, border: '2px solid #BFF549' }}>🧠</div>
+                <input placeholder="What's happening in 2130?" style={{ flex: 1, padding: '8px 14px', borderRadius: 20, border: '1px solid rgba(255,255,255,0.06)', background: 'rgba(255,255,255,0.03)', color: 'rgba(255,255,255,0.6)', fontSize: 12 }} />
+              </div>
+              <div style={{ display: 'flex', gap: 4, marginTop: 10, justifyContent: 'space-around' }}>
+                {[{ icon: 'video', label: 'Live', color: '#D95555' }, { icon: 'market', label: 'Sell', color: '#FACC15' }, { icon: 'ai', label: 'AI', color: '#f472b6' }].map((a, i) => (
+                  <button key={i} style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '5px 12px', borderRadius: 6, background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.04)', color: a.color, fontSize: 10, fontWeight: 600, cursor: 'pointer' }}>
+                    <span style={{ width: 14 }}>{Icon[a.icon]}</span>{a.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Posts */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+              {posts.map((p, i) => <Post key={i} {...p} />)}
+            </div>
+          </main>
+
+          {/* RIGHT SIDEBAR */}
+          <aside style={{ position: 'fixed', top: 52, right: 0, bottom: 0, width: 280, padding: 16, borderLeft: '1px solid rgba(255,255,255,0.04)', overflowY: 'auto',
+            background: 'rgba(5,5,16,0.5)', backdropFilter: 'blur(16px)', display: 'flex', flexDirection: 'column', gap: 12 }}>
+            {/* Online */}
+            <div style={{ background: 'rgba(46,204,143,0.04)', border: '1px solid rgba(46,204,143,0.08)', borderRadius: 14, padding: 12 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginBottom: 8 }}>
+                <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#2ECC8F', animation: 'pulse 2s ease-in-out infinite' }} />
+                <span style={{ color: 'rgba(255,255,255,0.5)', fontSize: 10, fontWeight: 600, letterSpacing: '0.05em', textTransform: 'uppercase' }}>12 Online</span>
+              </div>
+              {online.map((s, i) => (
+                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 0', borderBottom: '1px solid rgba(255,255,255,0.03)' }}>
+                  <div style={{ width: 28, height: 28, borderRadius: '50%', background: 'rgba(255,255,255,0.06)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, border: '1.5px solid #2ECC8F' }}>{s.avatar}</div>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ color: 'rgba(255,255,255,0.75)', fontSize: 11, fontWeight: 500 }}>{s.name}</div>
+                    <div style={{ color: 'rgba(255,255,255,0.25)', fontSize: 9 }}>{s.role}</div>
+                  </div>
                 </div>
               ))}
             </div>
-          </div>
 
-          {/* Navigation */}
-          {navItems.map(n => (
-            <button key={n.id} onClick={() => setActiveNav(n.id)} className="mc-f" style={{
-              display: 'flex', alignItems: 'center', gap: 10, padding: '8px 10px', borderRadius: 10, cursor: 'pointer',
-              background: activeNav === n.id ? 'rgba(191,245,73,0.06)' : 'transparent',
-              color: activeNav === n.id ? '#BFF549' : 'rgba(255,255,255,0.45)',
-              fontSize: 12, fontWeight: activeNav === n.id ? 600 : 400,
-              transition: 'all 0.15s', fontFamily: "'Inter', sans-serif",
-            }}>
-              <span style={{ width: 18, height: 18 }}>{Icon[n.icon]}</span>
-              <span>{n.label}</span>
-              {n.badge && <span style={{ marginLeft: 'auto', background: '#D95555', color: '#fff', fontSize: 8, fontWeight: 700, padding: '1px 5px', borderRadius: 4 }}>{n.badge}</span>}
-            </button>
-          ))}
-        </aside>
-
-        {/* ─── CENTER FEED ─── */}
-        <main style={{ flex: 1, marginLeft: 240, marginRight: 280, padding: 20, maxWidth: '100%', overflowX: 'hidden' }}>
-
-          {/* App Grid — 6 primary apps */}
-          <div className="mc-f" style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.04)', borderRadius: 16, padding: 14, marginBottom: 16 }}>
-            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', justifyContent: 'center' }}>
-              <AppIcon icon="feed" label="News Feed" color="#BFF549" glow="191,245,73" />
-              <AppIcon icon="chat" label="Messages" color="#60A5FA" badge="4" glow="96,165,250" />
-              <AppIcon icon="live" label="Live" color="#D95555" glow="217,85,85" />
-              <AppIcon icon="market" label="Market" color="#FACC15" glow="250,204,21" />
-              <AppIcon icon="database" label="Database" color="#a78bfa" glow="167,139,250" />
-              <AppIcon icon="ai" label="AI Lab" color="#f472b6" glow="244,114,182" />
-              <AppIcon icon="video" label="Videos" color="#34d399" />
-              <AppIcon icon="games" label="Games" color="#fb923c" />
-              <AppIcon icon="code" label="Code Studio" color="#38bdf8" />
-              <AppIcon icon="events" label="Events" color="#fbbf24" />
-              <AppIcon icon="shield" label="Security" color="#f87171" />
-              <AppIcon icon="globe" label="Global" color="#a3e635" />
-            </div>
-          </div>
-
-          {/* Create Post */}
-          <div className="mc-f" style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 14, padding: 14, marginBottom: 16 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-              <div style={{ width: 36, height: 36, borderRadius: '50%', background: 'rgba(255,255,255,0.06)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, border: '2px solid #BFF549' }}>🧠</div>
-              <input className="mc-input" placeholder="What's happening in 2130, Omar?" style={{ flex: 1, padding: '8px 14px', borderRadius: 20, border: '1px solid rgba(255,255,255,0.06)', background: 'rgba(255,255,255,0.03)', color: 'rgba(255,255,255,0.6)', fontSize: 12 }} />
-            </div>
-            <div style={{ display: 'flex', gap: 4, marginTop: 10, justifyContent: 'space-around' }}>
-              {[{ icon: 'video', label: 'Live', color: '#D95555' }, { icon: 'market', label: 'Sell', color: '#FACC15' }, { icon: 'ai', label: 'AI Create', color: '#f472b6' }].map((a, i) => (
-                <button key={i} style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '5px 12px', borderRadius: 6, background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.04)', color: a.color, fontSize: 10, fontWeight: 600, cursor: 'pointer' }}>
-                  <span style={{ width: 14 }}>{Icon[a.icon]}</span>{a.label}
-                </button>
+            {/* Trending */}
+            <div style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.04)', borderRadius: 14, padding: 12 }}>
+              <div style={{ color: 'rgba(255,255,255,0.5)', fontSize: 10, fontWeight: 600, letterSpacing: '0.05em', textTransform: 'uppercase', marginBottom: 8 }}>🔥 Trending</div>
+              {trending.map((t, i) => (
+                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '5px 4px', borderRadius: 6 }}>
+                  <span style={{ width: 6, height: 6, borderRadius: 2, background: t.color }} />
+                  <span style={{ color: 'rgba(255,255,255,0.6)', fontSize: 11, fontWeight: 500, flex: 1 }}>{t.tag}</span>
+                  <span style={{ color: 'rgba(255,255,255,0.2)', fontSize: 9 }}>{t.posts}</span>
+                </div>
               ))}
             </div>
-          </div>
 
-          {/* Feed Posts */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-            {posts.map((p, i) => (
-              <div key={i} className="mc-f" style={{ animationDelay: `${i * 80}ms` }}>
-                <Post {...p} />
+            {/* AI */}
+            <div style={{ background: 'rgba(244,114,182,0.04)', border: '1px solid rgba(244,114,182,0.1)', borderRadius: 14, padding: 12 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6 }}>
+                <span style={{ color: '#f472b6' }}>{Icon.ai}</span>
+                <span style={{ color: 'rgba(255,255,255,0.5)', fontSize: 10, fontWeight: 600, letterSpacing: '0.05em' }}>KDS AI</span>
               </div>
-            ))}
-          </div>
-        </main>
-
-        {/* ─── RIGHT SIDEBAR ─── */}
-        <aside style={{ width: 280, position: 'fixed', top: 52, right: 0, bottom: 0, padding: 16,
-          borderLeft: '1px solid rgba(255,255,255,0.04)', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 12 }}>
-
-          {/* Online Now */}
-          <div className="mc-f" style={{ background: 'rgba(46,204,143,0.04)', border: '1px solid rgba(46,204,143,0.08)', borderRadius: 14, padding: 12 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginBottom: 10 }}>
-              <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#2ECC8F', animation: 'pulse 2s ease-in-out infinite' }} />
-              <span style={{ color: 'rgba(255,255,255,0.5)', fontSize: 10, fontWeight: 600, letterSpacing: '0.05em', textTransform: 'uppercase' }}>12 Online Now</span>
+              <div style={{ background: 'rgba(255,255,255,0.03)', borderRadius: 8, padding: 8, marginBottom: 6, fontSize: 10, color: 'rgba(255,255,255,0.5)', lineHeight: 1.5 }}>
+                Scroll down and watch the chaos unfold. Particles, glitches, RGB split — all reactive to your scroll speed 🤯
+              </div>
+              <div style={{ display: 'flex', gap: 4 }}>
+                <input placeholder="Ask me..." style={{ flex: 1, padding: '5px 10px', borderRadius: 6, border: '1px solid rgba(255,255,255,0.06)', background: 'rgba(255,255,255,0.03)', color: 'rgba(255,255,255,0.6)', fontSize: 10 }} />
+                <button style={{ padding: '5px 10px', background: 'rgba(244,114,182,0.15)', border: '1px solid rgba(244,114,182,0.2)', borderRadius: 6, color: '#f472b6', cursor: 'pointer' }}>{Icon.send}</button>
+              </div>
             </div>
-            {suggestions.map((s, i) => (
-              <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 0', borderBottom: '1px solid rgba(255,255,255,0.03)' }}>
-                <div style={{ width: 28, height: 28, borderRadius: '50%', background: 'rgba(255,255,255,0.06)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, border: `1.5px solid ${s.status === 'Online' ? '#2ECC8F' : 'transparent'}` }}>{s.avatar}</div>
-                <div style={{ flex: 1 }}>
-                  <div style={{ color: 'rgba(255,255,255,0.75)', fontSize: 11, fontWeight: 500 }}>{s.name}</div>
-                  <div style={{ color: 'rgba(255,255,255,0.25)', fontSize: 9 }}>{s.role}</div>
+
+            {/* Stats */}
+            <div style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.04)', borderRadius: 14, padding: 12 }}>
+              <div style={{ color: 'rgba(255,255,255,0.5)', fontSize: 10, fontWeight: 600, letterSpacing: '0.05em', textTransform: 'uppercase', marginBottom: 6 }}>📊 Stats</div>
+              {[{ l: 'Members', v: '12,847', c: '#BFF549' }, { l: 'Active Today', v: '1,247', c: '#2ECC8F' }, { l: 'Posts Today', v: '847', c: '#60A5FA' }, { l: 'Uptime', v: '99.7%', c: '#FACC15' }].map((s, i) => (
+                <div key={i} style={{ display: 'flex', justifyContent: 'space-between', padding: '4px 0', borderBottom: '1px solid rgba(255,255,255,0.03)' }}>
+                  <span style={{ color: 'rgba(255,255,255,0.35)', fontSize: 10 }}>{s.l}</span>
+                  <span style={{ color: s.c, fontSize: 10, fontWeight: 600, fontFamily: "'JetBrains Mono', monospace" }}>{s.v}</span>
                 </div>
-                <span style={{ color: s.status === 'Online' ? '#2ECC8F' : 'rgba(255,255,255,0.2)', fontSize: 8 }}>{s.status}</span>
-              </div>
-            ))}
-          </div>
-
-          {/* Trending */}
-          <div className="mc-f" style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.04)', borderRadius: 14, padding: 12 }}>
-            <div style={{ color: 'rgba(255,255,255,0.5)', fontSize: 10, fontWeight: 600, letterSpacing: '0.05em', textTransform: 'uppercase', marginBottom: 10 }}>🔥 Trending</div>
-            {trending.map((t, i) => (
-              <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '5px 4px', borderRadius: 6 }}>
-                <span style={{ width: 6, height: 6, borderRadius: 2, background: t.color }} />
-                <span style={{ color: 'rgba(255,255,255,0.6)', fontSize: 11, fontWeight: 500, flex: 1 }}>{t.tag}</span>
-                <span style={{ color: 'rgba(255,255,255,0.2)', fontSize: 9 }}>{t.posts}</span>
-              </div>
-            ))}
-          </div>
-
-          {/* AI Assistant */}
-          <div className="mc-f" style={{ background: 'rgba(244,114,182,0.04)', border: '1px solid rgba(244,114,182,0.1)', borderRadius: 14, padding: 12 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8 }}>
-              <span style={{ color: '#f472b6' }}>{Icon.ai}</span>
-              <span style={{ color: 'rgba(255,255,255,0.5)', fontSize: 10, fontWeight: 600, letterSpacing: '0.05em' }}>KDS AI Assistant</span>
+              ))}
             </div>
-            <div style={{ background: 'rgba(255,255,255,0.03)', borderRadius: 8, padding: 8, marginBottom: 6, fontSize: 10, color: 'rgba(255,255,255,0.5)', lineHeight: 1.5 }}>
-              Hey Omar! Your 3D hero deployed successfully. Community is growing fast — 847 reactions on your last post! 🚀
-            </div>
-            <div style={{ display: 'flex', gap: 4 }}>
-              <input className="mc-input" placeholder="Ask me anything..." style={{ padding: '5px 10px', fontSize: 10, borderTopRightRadius: 0, borderBottomRightRadius: 0 }} />
-              <button style={{ padding: '5px 10px', background: 'rgba(244,114,182,0.15)', border: '1px solid rgba(244,114,182,0.2)', borderTopLeftRadius: 0, borderBottomLeftRadius: 0, color: '#f472b6', cursor: 'pointer' }}>{Icon.send}</button>
-            </div>
-          </div>
 
-          {/* Stats */}
-          <div className="mc-f" style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.04)', borderRadius: 14, padding: 12 }}>
-            <div style={{ color: 'rgba(255,255,255,0.5)', fontSize: 10, fontWeight: 600, letterSpacing: '0.05em', textTransform: 'uppercase', marginBottom: 8 }}>📊 Platform Stats</div>
-            {[{ l: 'Total Members', v: '12,847', c: '#BFF549' }, { l: 'Active Today', v: '1,247', c: '#2ECC8F' }, { l: 'Posts Today', v: '847', c: '#60A5FA' }, { l: 'Uptime', v: '99.7%', c: '#FACC15' }].map((s, i) => (
-              <div key={i} style={{ display: 'flex', justifyContent: 'space-between', padding: '4px 0', borderBottom: '1px solid rgba(255,255,255,0.03)' }}>
-                <span style={{ color: 'rgba(255,255,255,0.35)', fontSize: 10 }}>{s.l}</span>
-                <span style={{ color: s.c, fontSize: 10, fontWeight: 600, fontFamily: "'JetBrains Mono', monospace" }}>{s.v}</span>
-              </div>
-            ))}
-          </div>
+            <div style={{ color: 'rgba(255,255,255,0.15)', fontSize: 8, textAlign: 'center', marginTop: 8 }}>
+              KDS v2.0 • {time.toLocaleTimeString()}
+            </div>
+          </aside>
+        </div>
 
-          <div style={{ color: 'rgba(255,255,255,0.15)', fontSize: 8, textAlign: 'center', marginTop: 8 }}>
-            KDS v2.0 © 2130 • {time.toLocaleTimeString()}
-          </div>
-        </aside>
+        {/* Extra space for scroll-driven chaos */}
+        <div style={{ height: '200vh' }} />
       </div>
 
-      {/* Ambient Sound */}
       <AmbientSound />
-    </div>
+    </>
   );
 }
