@@ -30,7 +30,7 @@ export default function LrysDripBackground() {
     <div
       className="fixed inset-0 z-0 pointer-events-none flex items-center justify-center overflow-hidden"
       style={{
-        opacity: phase === 'background' ? 0.5 : 1,
+        opacity: phase === 'background' ? 0.85 : 1,
         transition: 'opacity 2s ease-in-out',
       }}
     >
