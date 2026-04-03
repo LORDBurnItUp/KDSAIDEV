@@ -4,56 +4,130 @@ import { useRef, useMemo, useEffect, useState, useCallback } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 
-// ════════════════════════════════════════
+// ═══════════════════════════════════════
 // SHARED STATE
-// ════════════════════════════════════════
+// ═══════════════════════════════════════
 const mouseTarget = new THREE.Vector2(0, 0);
 const mouseSmooth = new THREE.Vector2(0, 0);
 let scrollProgress = 0;
 let scrollVelocity = 0;
-let lastScroll = 0;
-let glitchIntensity = 0;
+let lastScrollY = 0;
+let glowIntensity = 1.0;
 
-// ════════════════════════════════════════
-// GLITCH POST-PROCESSING (custom shader pass)
-// ════════════════════════════════════════
-function GlitchOverlay() {
-  const intensity = useRef(0);
-  const time = useRef(0);
+// ═══════════════════════════════════════
+// 🎥 PARALLAX SCROLL CAMERA
+//
+// As you scroll, the camera journeys
+// through a layered 3D universe:
+//   Section 0: Front-on hero — KDS text
+//   Section 1: Orbit left — see particles from side
+//   Section 2: Dive deep — fly through cloud
+//   Section 3: Rise above — birdseye constellation
+//   Section 4: Spiral behind — letters from behind
+//   Section 5: Zoom out — epic scale reveal
+// ═══════════════════════════════════════
+function ParallaxCamera() {
+  const smooth = useRef({
+    pos: new THREE.Vector3(0, 0, 6),
+    lookAt: new THREE.Vector3(0, 0, 0),
+  });
 
-  useFrame((state, delta) => {
-    intensity.current += (glitchIntensity - intensity.current) * 0.1;
-    time.current += delta;
+  useFrame(() => {
+    mouseSmooth.lerp(mouseTarget, 0.05);
+    const t = scrollProgress; // 0→1
+    const m = mouseSmooth;
 
-    if (intensity.current < 0.01) return;
+    // ── CHOREOGRAPHED CAMERA PATH ──
+    let cx = 0, cy = 0, cz = 6, lx = 0, ly = 0, lz = 0;
 
-    // Canvas-based glitch overlay (not in Three.js)
-    const el = document.getElementById('glitch-overlay');
-    if (!el) return;
-
-    const slices = Math.floor(intensity.current * 15);
-    let boxShadows: string[] = [];
-    let transforms: string[] = [];
-
-    for (let i = 0; i < slices; i++) {
-      const y = (Math.sin(time.current * 20 + i * 3.7) * 0.5 + 0.5);
-      const x = (Math.cos(time.current * 15 + i * 2.3) * 0.5) * intensity.current * 20;
-      const color = Math.random() > 0.5 ? 'rgba(191,245,73,' : 'rgba(96,165,250,';
-      boxShadows.push(`${x}px ${y * 2}px 0 ${color}${intensity.current * 0.3})`);
+    if (t < 0.20) {
+      // Section 0: Hero — straight-on, slight hover
+      const lt = t / 0.20;
+      cx = m.x * 0.4 * (1 - lt * 0.5);
+      cy = 0.2 + lt * 0.3 + m.y * 0.3 * (1 - lt);
+      cz = 6 - lt * 1;
+      lx = m.x * 0.3;
+      ly = 0 - lt * 0.2;
+      lz = 0;
+    } else if (t < 0.40) {
+      // Section 1: Orbit right — circling around, descending
+      const lt = (t - 0.20) / 0.20;
+      const angle = lt * Math.PI * 0.8;
+      cx = Math.sin(angle) * 3.5 + m.x * 0.3;
+      cy = 0.5 - lt * 1.5 + m.y * 0.2;
+      cz = 5 - lt * 2;
+      lx = Math.cos(angle) * 0.5;
+      ly = 0 - lt * 0.3;
+    } else if (t < 0.60) {
+      // Section 2: DIVE — camera flies into the particle cloud
+      const lt = (t - 0.40) / 0.20;
+      cx = 3.5 - lt * 5 + Math.sin(lt * Math.PI) * m.x * 0.5;
+      cy = -1.0 + lt * 2 + m.y * 0.3;
+      cz = 3 + lt * 0.5;
+      lx = -lt * 2 + m.x * 0.2;
+      ly = lt * 0.5;
+    } else if (t < 0.80) {
+      // Section 3: Rise above — looking down at constellation
+      const lt = (t - 0.60) / 0.20;
+      cx = -1.5 + lt * 2 + m.x * 0.2;
+      cy = 1.5 + lt * 4 + m.y * 0.15;
+      cz = 3.5 - lt * 1.5;
+      lx = lt * 0.5;
+      ly = -lt * 0.5;
+    } else if (t < 0.95) {
+      // Section 4: Behind — see letters from backside
+      const lt = (t - 0.80) / 0.15;
+      const angle = Math.PI * 0.5 + lt * Math.PI * 0.5;
+      cx = Math.sin(angle) * 4;
+      cy = 5.5 - lt * 2;
+      cz = 2 - lt * 1;
+      lx = 0;
+      ly = -lt * 0.5;
+    } else {
+      // Section 5: Epic zoom out — wide shot, everything recedes
+      const lt = (t - 0.95) / 0.05;
+      cx = -4 * (1 - lt);
+      cy = 3.5 - lt * 3.5;
+      cz = 1 + lt * 8;
+      lx = 0;
+      ly = -0.5;
     }
 
-    el.style.transform = `translate(${(Math.random() - 0.5) * intensity.current * 10}px, ${(Math.random() - 0.5) * intensity.current * 5}px)`;
-    el.style.boxShadow = boxShadows.join(',');
-    el.style.opacity = intensity.current.toString();
+    // Smooth interpolation (different speeds for pos vs lookAt)
+    smooth.current.pos.set(cx, cy, cz);
+    const { camera } = useThree.__getInstance() || { camera: null };
+
+    // Direct camera manipulation
+    const state = useThree.__getState();
+    if (!state) return;
+    const cam = state.camera;
+
+    cam.position.lerp(smooth.current.pos, 0.04);
+
+    const target = new THREE.Vector3(lx, ly, lz);
+    smooth.current.lookAt.lerp(target, 0.05);
+    cam.lookAt(smooth.current.lookAt);
+
+    // Dynamic FOV — tight at start, wide at end
+    const pc = cam as THREE.PerspectiveCamera;
+    const fov = 45 + t * 20;
+    pc.fov = fov;
+    pc.updateProjectionMatrix();
   });
 
   return null;
 }
 
-// ════════════════════════════════════════
-// CONSTELLATION PARTICLE NETWORK
-// ════════════════════════════════════════
-function Constellation({ count = 150 }: { count?: number }) {
+// ═══════════════════════════════════════
+// 🌌 SCROLL-REACTIVE PARTICLE NETWORK
+//
+// Particles orbit at different depths.
+// As camera moves past, closer particles
+// parallax faster than distant ones.
+// Connections tighten and re-form
+// dynamically based on camera position.
+// ═══════════════════════════════════════
+function ScrollConstellation({ count = 180 }: { count?: number }) {
   const pointsRef = useRef<THREE.Points>(null);
   const linesRef = useRef<THREE.LineSegments>(null);
 
@@ -61,336 +135,315 @@ function Constellation({ count = 150 }: { count?: number }) {
     pos: THREE.Vector3;
     vel: THREE.Vector3;
     basePos: THREE.Vector3;
-    originalColor: THREE.Color;
+    depth: number; // 0=far, 1=close
   }>>([]);
 
   const positions = useMemo(() => {
     const pos = new Float32Array(count * 3);
     for (let i = 0; i < count; i++) {
-      const x = (Math.random() - 0.5) * 18;
-      const y = (Math.random() - 0.5) * 12;
-      const z = (Math.random() - 0.5) * 8;
+      const depth = Math.random();
+      const spread = 12 + depth * 6;
+      const x = (Math.random() - 0.5) * spread;
+      const y = (Math.random() - 0.5) * spread * 0.7;
+      const z = (Math.random() - 0.5) * 10 - 1;
       pos[i*3] = x; pos[i*3+1] = y; pos[i*3+2] = z;
-
-      const c = new THREE.Color().setHSL(0.28 + Math.random() * 0.15, 0.8, 0.5 + Math.random() * 0.3);
       particles.current.push({
         pos: new THREE.Vector3(x, y, z),
-        vel: new THREE.Vector3((Math.random()-0.5)*0.003, (Math.random()-0.5)*0.003, 0),
+        vel: new THREE.Vector3(
+          (Math.random()-0.5)*0.002,
+          (Math.random()-0.5)*0.002,
+          (Math.random()-0.5)*0.001
+        ),
         basePos: new THREE.Vector3(x, y, z),
-        originalColor: c,
+        depth,
       });
     }
     return pos;
   }, [count]);
 
-  const linePos = useMemo(() => new Float32Array(count * count * 3 * 2), [count]);
-  const lineColor = useMemo(() => new Float32Array(count * count * 3 * 2), [count]);
-  const colors = useMemo(() => {
-    const c = new Float32Array(count * 3);
-    particles.current.forEach((p, i) => {
-      c[i*3] = p.originalColor.r;
-      c[i*3+1] = p.originalColor.g;
-      c[i*3+2] = p.originalColor.b;
-    });
-    return c;
-  }, [count]);
+  const linePositions = useMemo(() => new Float32Array(count * 12 * 3 * 2), [count]);
+  const lineColors = useMemo(() => new Float32Array(count * 12 * 3 * 2), [count]);
 
-  useFrame((state, delta) => {
+  useFrame((state) => {
     if (!pointsRef.current || !linesRef.current) return;
 
-    mouseSmooth.lerp(mouseTarget, 0.04);
-
-    // Update scroll velocity
-    scrollVelocity = Math.abs(scrollProgress - lastScroll);
-    glitchIntensity = Math.min(1, scrollVelocity * 15);
-    lastScroll = scrollProgress;
+    mouseSmooth.lerp(mouseTarget, 0.05);
+    const t = scrollProgress;
+    const scrollVel = Math.abs(scrollProgress - lastScrollY);
+    lastScrollY = scrollProgress;
+    glowIntensity += (glimpse - glowIntensity) * 0.05;
 
     const pos = pointsRef.current.geometry.attributes.position.array as Float32Array;
-    const col = (pointsRef.current.geometry.attributes.color?.array || colors) as Float32Array;
-
-    // ── CHAOS ZONE: When you scroll fast, everything goes feral ──
-    const chaos = glitchIntensity; // 0 to 1
-    const connectionDist = 3.5 - chaos * 2; // Lines disappear as you scroll fast
+    const cameraZ = useThree.__getState()?.camera?.position?.z || 6;
     let lineIdx = 0;
 
     const lime = new THREE.Color('#BFF549');
     const blue = new THREE.Color('#60A5FA');
-    const red = new THREE.Color('#ff3333');
-    const glitchColors = [lime, blue, red, new THREE.Color('#ff00ff'), new THREE.Color('#00ffff')];
+    const gold = new THREE.Color('#FACC15');
 
     particles.current.forEach((p, i) => {
-      // ── BASE MOVEMENT ──
-      // Mouse attraction
-      const dx = mouseSmooth.x * 6 - p.pos.x;
-      const dy = mouseSmooth.y * 4 - p.pos.y;
-      p.vel.x += dx * 0.00002;
-      p.vel.y += dy * 0.00002;
-
-      // Return to base (weaker when glitching)
-      const returnStrength = 0.001 * (1 - chaos * 0.8);
-      p.vel.x += (p.basePos.x - p.pos.x) * returnStrength;
-      p.vel.y += (p.basePos.y - p.pos.y) * returnStrength;
-
-      // ── CHAOS EFFECTS ──
-      if (chaos > 0.1) {
-        // Random jerking
-        p.vel.x += (Math.random() - 0.5) * chaos * 0.1;
-        p.vel.y += (Math.random() - 0.5) * chaos * 0.1;
-        p.vel.z += (Math.random() - 0.5) * chaos * 0.05;
-
-        // Z-axis distortion (particles fly toward/away from camera)
-        p.pos.z += Math.sin(state.clock.elapsedTime * 20 + i * 0.3) * chaos * 0.05;
-
-        // Color glitch
-        if (chaos > 0.3 && Math.random() < chaos * 0.1) {
-          const gc = glitchColors[Math.floor(Math.random() * glitchColors.length)];
-          col[i*3] = gc.r;
-          col[i*3+1] = gc.g;
-          col[i*3+2] = gc.b;
-        } else {
-          // Smooth return
-          col[i*3] += (p.originalColor.r - col[i*3]) * 0.05;
-          col[i*3+1] += (p.originalColor.g - col[i*3+1]) * 0.05;
-          col[i*3+2] += (p.originalColor.b - col[i*3+2]) * 0.05;
-        }
-      }
-
-      // Damping (reduced during chaos)
-      const damp = 0.99 - chaos * 0.03; // Less damping = more chaos
-      p.vel.x *= Math.max(damp, 0.85);
-      p.vel.y *= Math.max(damp, 0.85);
-      p.vel.z *= Math.max(damp, 0.9);
-
+      // Gentle drift
       p.pos.add(p.vel);
 
-      // Wrap with chaos distortion
-      const wrapX = 10 + chaos * 5;
-      const wrapY = 7 + chaos * 5;
-      if (p.pos.x > wrapX) p.pos.x = -wrapX;
-      if (p.pos.x < -wrapX) p.pos.x = wrapX;
-      if (p.pos.y > wrapY) p.pos.y = -wrapY;
-      if (p.pos.y < -wrapY) p.pos.y = wrapY;
+      // Mouse attraction (stronger for close particles)
+      const mousePull = p.depth * 0.0001;
+      p.vel.x += (mouseSmooth.x * 6 - p.pos.x) * mousePull;
+      p.vel.y += (mouseSmooth.y * 4 - p.pos.y) * mousePull;
 
+      // Damping
+      p.vel.multiplyScalar(0.997);
+
+      // Scroll velocity push — particles scatter on fast scroll
+      if (scrollVel > 0.005) {
+        p.vel.x += (Math.random() - 0.5) * scrollVel * 50 * p.depth;
+        p.vel.y += (Math.random() - 0.5) * scrollVel * 50 * p.depth;
+        p.vel.z += (Math.random() - 0.5) * scrollVel * 30 * p.depth;
+      }
+
+      // Return to base
+      const returnStrength = 0.0003 * (1 + p.depth);
+      p.vel.x += (p.basePos.x - p.pos.x) * returnStrength;
+      p.vel.y += (p.basePos.y - p.pos.y) * returnStrength;
+      p.vel.z += (p.basePos.z - p.pos.z) * returnStrength;
+
+      // Wrap
+      const bounds = 10 + p.depth * 6;
+      if (p.pos.x > bounds) p.pos.x = -bounds;
+      if (p.pos.x < -bounds) p.pos.x = bounds;
+      if (p.pos.y > bounds*0.7) p.pos.y = -bounds*0.7;
+      if (p.pos.y < -bounds*0.7) p.pos.y = bounds*0.7;
+
+      // Update
       pos[i*3] = p.pos.x;
       pos[i*3+1] = p.pos.y;
       pos[i*3+2] = p.pos.z;
+    });
 
-      // ── CONNECTIONS (fewer as chaos increases) ──
-      if (chaos < 0.5) {
-        for (let j = i + 1; j < particles.current.length; j++) {
-          const q = particles.current[j];
-          const dist = p.pos.distanceTo(q.pos);
-          if (dist < connectionDist) {
-            const opacity = (1 - dist / connectionDist) * (1 - chaos) * 0.35;
-            const mixT = (p.pos.y + 6) / 12;
-            const c = new THREE.Color().lerpColors(lime, blue, mixT);
+    // ── CONNECTIONS (camera-relative) ──
+    const maxDist = 3.5 - scrollVel * 500; // Lines snap during fast scroll
+    const camPos = useThree.__getState()?.camera?.position || new THREE.Vector3(0, 0, 6);
 
-            // Glitch-colored lines
-            if (chaos > 0.2 && Math.random() < chaos * 0.05) {
-              const gc = glitchColors[Math.floor(Math.random() * glitchColors.length)];
-              linePos[lineIdx] = p.pos.x; linePos[lineIdx+1] = p.pos.y; linePos[lineIdx+2] = p.pos.z;
-              linePos[lineIdx+3] = q.pos.x; linePos[lineIdx+4] = q.pos.y; linePos[lineIdx+5] = q.pos.z;
-              lineColor[lineIdx] = gc.r * opacity * 2;
-              lineColor[lineIdx+1] = gc.g * opacity * 2;
-              lineColor[lineIdx+2] = gc.b * opacity * 2;
-              lineColor[lineIdx+3] = gc.r * opacity * 2;
-              lineColor[lineIdx+4] = gc.g * opacity * 2;
-              lineColor[lineIdx+5] = gc.b * opacity * 2;
-              lineIdx += 6;
-            } else {
-              linePos[lineIdx] = p.pos.x; linePos[lineIdx+1] = p.pos.y; linePos[lineIdx+2] = p.pos.z;
-              linePos[lineIdx+3] = q.pos.x; linePos[lineIdx+4] = q.pos.y; linePos[lineIdx+5] = q.pos.z;
-              lineColor[lineIdx] = c.r * opacity; lineColor[lineIdx+1] = c.g * opacity; lineColor[lineIdx+2] = c.b * opacity;
-              lineColor[lineIdx+3] = c.r * opacity; lineColor[lineIdx+4] = c.g * opacity; lineColor[lineIdx+5] = c.b * opacity;
-              lineIdx += 6;
-            }
+    particles.current.forEach((p, i) => {
+      // Only connect particles within camera range
+      const camDist = p.pos.distanceTo(camPos);
+      if (camDist > 12) return;
+
+      for (let j = i + 1; j < particles.current.length; j++) {
+        const q = particles.current[j];
+        const dist = p.pos.distanceTo(q.pos);
+        if (dist < maxDist && dist > 0) {
+          const opacity = (1 - dist / maxDist) * (1 - camDist / 12) * 0.4;
+          if (opacity < 0.01) continue;
+
+          // Color based on Y position + scroll phase
+          const baseColor = new THREE.Color().lerpColors(lime, blue, (p.pos.y + 6) / 12);
+          if (scrollVel > 0.01) {
+            baseColor.lerp(gold, Math.min(scrollVel * 200, 0.5)); // Gold flash on fast scroll
           }
+
+          linePositions[lineIdx] = p.pos.x;
+          linePositions[lineIdx+1] = p.pos.y;
+          linePositions[lineIdx+2] = p.pos.z;
+          linePositions[lineIdx+3] = q.pos.x;
+          linePositions[lineIdx+4] = q.pos.y;
+          linePositions[lineIdx+5] = q.pos.z;
+
+          lineColors[lineIdx] = baseColor.r * opacity;
+          lineColors[lineIdx+1] = baseColor.g * opacity;
+          lineColors[lineIdx+2] = baseColor.b * opacity;
+          lineColors[lineIdx+3] = baseColor.r * opacity;
+          lineColors[lineIdx+4] = baseColor.g * opacity;
+          lineColors[lineIdx+5] = baseColor.b * opacity;
+
+          lineIdx += 6;
         }
       }
     });
 
-    if (pointsRef.current.geometry.attributes.color) {
-      pointsRef.current.geometry.attributes.color.needsUpdate = true;
-    }
     pointsRef.current.geometry.attributes.position.needsUpdate = true;
-    linesRef.current.geometry.setDrawRange(0, lineIdx);
+    linesRef.current.geometry.setDrawRange(0, lineIdx / 3);
     linesRef.current.geometry.attributes.position.needsUpdate = true;
     linesRef.current.geometry.attributes.color.needsUpdate = true;
   });
 
   return (
     <>
-      <points ref={pointsRef} geometry={
-        new THREE.BufferGeometry()
-          .setAttribute('position', new THREE.BufferAttribute(positions, 3))
-          .setAttribute('color', new THREE.BufferAttribute(colors, 3))
-      }>
-        <pointsMaterial size={0.035} vertexColors transparent opacity={0.8} sizeAttenuation blending={THREE.AdditiveBlending} depthWrite={false} />
+      <points ref={pointsRef} geometry={new THREE.BufferGeometry().setAttribute('position', new THREE.BufferAttribute(positions, 3))}>
+        <pointsMaterial size={0.03} color="#BFF549" transparent opacity={0.75} sizeAttenuation blending={THREE.AdditiveBlending} depthWrite={false} />
       </points>
       <lineSegments ref={linesRef}>
         <bufferGeometry>
-          <bufferAttribute attach="attributes-position" count={linePos.length / 3} itemSize={3} array={linePos} />
-          <bufferAttribute attach="attributes-color" count={lineColor.length / 3} itemSize={3} array={lineColor} />
+          <bufferAttribute attach="attributes-position" count={linePositions.length / 3} itemSize={3} array={linePositions} />
+          <bufferAttribute attach="attributes-color" count={lineColors.length / 3} itemSize={3} array={lineColors} />
         </bufferGeometry>
-        <lineBasicMaterial vertexColors transparent opacity={0.5} blending={THREE.AdditiveBlending} />
+        <lineBasicMaterial vertexColors transparent opacity={0.6} blending={THREE.AdditiveBlending} depthWrite={false} />
       </lineSegments>
     </>
   );
 }
 
-// ─── FLOATING WIREFRAMES ───
-function FloatingShapes() {
-  const shapes = useRef<Array<THREE.Mesh | null>>([]);
-  const shapeData = useMemo(() =>
-    Array.from({ length: 20 }, (_, i) => ({
-      pos: new THREE.Vector3(
-        (Math.random()-0.5)*18,
-        (Math.random()-0.5)*14,
-        (Math.random()-0.5)*10 - 2
-      ),
-      rotSpeed: new THREE.Vector3(
-        (Math.random()-0.5)*0.008,
-        (Math.random()-0.5)*0.012,
-        (Math.random()-0.5)*0.006
-      ),
-      scale: 0.1 + Math.random() * 0.3,
-      geo: i % 5,
-    })), []);
+// ═══════════════════════════════════════
+// 💎 FLOATING WIREFRAME LAYERS
+//
+// Three depth layers of wireframe geometry.
+// Each layer parallax at different speeds
+// based on scroll position.
+// ═══════════════════════════════════════
+function ParallaxWireframes() {
+  const layers = useMemo(() => [
+    { // Far layer — slow parallax
+      count: 12, scale: 0.15, opacity: 0.03, zSpread: -6, speed: 0.2, color: '#BFF549'
+    },
+    { // Mid layer
+      count: 8, scale: 0.25, opacity: 0.05, zSpread: -3, speed: 0.5, color: '#60A5FA'
+    },
+    { // Near layer — fast parallax
+      count: 6, scale: 0.4, opacity: 0.07, zSpread: 0, speed: 1.0, color: '#FACC15'
+    },
+  ], []);
+
+  const shapeRefs = useRef<Array<THREE.Mesh | null>>([]);
+  const shapeData = useMemo(() => {
+    const data: Array<{
+      pos: THREE.Vector3;
+      rotSpeed: THREE.Vector3;
+      scale: number;
+      layer: number;
+      geo: number;
+    }> = [];
+    let idx = 0;
+    layers.forEach((layer, li) => {
+      for (let i = 0; i < layer.count; i++) {
+        data.push({
+          pos: new THREE.Vector3(
+            (Math.random() - 0.5) * 16,
+            (Math.random() - 0.5) * 10,
+            layer.zSpread + (Math.random() - 0.5) * 3
+          ),
+          rotSpeed: new THREE.Vector3(
+            (Math.random() - 0.5) * 0.008 * (li + 1),
+            (Math.random() - 0.5) * 0.012 * (li + 1),
+            (Math.random() - 0.5) * 0.006
+          ),
+          scale: layer.scale * (0.5 + Math.random()),
+          layer: li,
+          geo: Math.floor(Math.random() * 4),
+        });
+        idx++;
+      }
+    });
+    return data;
+  }, [layers]);
 
   useFrame((state, delta) => {
-    shapes.current.forEach((s, i) => {
-      if (!s || !shapeData[i]) return;
-      const chaos = glitchIntensity;
+    const t = scrollProgress;
+    shapeRefs.current.forEach((ref, i) => {
+      if (!ref || !shapeData[i]) return;
+      const d = shapeData[i];
+      const layer = layers[d.layer];
 
-      // Normal rotation
-      s.rotation.x += shapeData[i].rotSpeed.x + chaos * (Math.random()-0.5) * 0.1;
-      s.rotation.y += shapeData[i].rotSpeed.y + chaos * (Math.random()-0.5) * 0.1;
-      s.rotation.z += shapeData[i].rotSpeed.z;
+      // Parallax offset based on scroll
+      const parallaxX = Math.sin(t * Math.PI * (1 + d.layer * 0.5)) * layer.speed * 1.5;
+      const parallaxY = Math.cos(t * Math.PI * (0.7 + d.layer * 0.3)) * layer.speed * 0.8;
 
-      // Float
-      if (chaos < 0.3) {
-        s.position.y = shapeData[i].pos.y + Math.sin(state.clock.elapsedTime * 0.4 + i) * 0.3;
-      } else {
-        // Glitch: shapes telepathically jump
-        s.position.y = shapeData[i].pos.y + (Math.random()-0.5) * chaos * 3;
-        s.position.x = shapeData[i].pos.x + (Math.random()-0.5) * chaos * 2;
-      }
+      ref.position.x = d.pos.x + parallaxX;
+      ref.position.y = d.pos.y + parallaxY;
+      ref.position.z = d.pos.z + Math.sin(state.clock.elapsedTime * 0.3 + i) * 0.2;
 
-      // Scale pulse during chaos
-      const pulse = 1 + Math.sin(state.clock.elapsedTime * 10 + i) * chaos * 0.5;
-      s.scale.setScalar(shapeData[i].scale * pulse);
+      // Rotation
+      ref.rotation.x += d.rotSpeed.x;
+      ref.rotation.y += d.rotSpeed.y;
+      ref.rotation.z += delta * 0.002;
+
+      // Scale pulse when camera passes
+      const camZ = useThree.__getState()?.camera?.position?.z || 6;
+      const distToCam = Math.abs(d.pos.z - camZ);
+      const pulse = 1 + Math.max(0, (3 - distToCam) / 3) * 0.3;
+      ref.scale.setScalar(d.scale * pulse);
     });
   });
-
-  const mat = useMemo(() => new THREE.MeshBasicMaterial({
-    color: '#BFF549', wireframe: true, transparent: true, opacity: 0.06,
-  }), []);
 
   return (
     <>
       {shapeData.map((d, i) => (
-        <mesh key={i} ref={(el) => { if (el && !shapes.current[i]) shapes.current[i] = el; }}
-          position={d.pos} scale={d.scale} material={i % 3 === 0 ?
-            new THREE.MeshBasicMaterial({ color: '#60A5FA', wireframe: true, transparent: true, opacity: 0.04 }) :
-            i % 3 === 1 ?
-            new THREE.MeshBasicMaterial({ color: '#BFF549', wireframe: true, transparent: true, opacity: 0.06 }) :
-            new THREE.MeshBasicMaterial({ color: '#FACC15', wireframe: true, transparent: true, opacity: 0.05 })
-          }>
-          {d.geo === 0 && <tetrahedronGeometry />}
-          {d.geo === 1 && <octahedronGeometry />}
-          {d.geo === 2 && <icosahedronGeometry />}
-          {d.geo === 3 && <dodecahedronGeometry />}
-          {d.geo === 4 && <boxGeometry args={[1, 1, 0.15]} />}
+        <mesh key={i}
+          ref={(el) => { if (el && !shapeRefs.current[i]) shapeRefs.current[i] = el; }}
+          position={d.pos}
+          scale={d.scale}
+        >
+          <meshBasicMaterial
+            color={layers[d.layer].color}
+            wireframe
+            transparent={true}
+            opacity={layers[d.layer].opacity}
+            depthWrite={false}
+          />
+          {d.geo === 0 && <icosahedronGeometry args={[1, 0]} />}
+          {d.geo === 1 && <dodecahedronGeometry args={[1, 0]} />}
+          {d.geo === 2 && <octahedronGeometry args={[1, 0]} />}
+          {d.geo === 3 && <tetrahedronGeometry args={[1, 0]} />}
         </mesh>
       ))}
     </>
   );
 }
 
-// ─── CAMERA — goes insane on scroll ───
-function ChaosCamera() {
-  const { camera } = useThree();
-  const pos = useRef(new THREE.Vector3(0, 0, 6));
-  const lookAt = useRef(new THREE.Vector3(0, 0, 0));
+// ═══════════════════════════════════════
+// 💡 DYNAMIC LIGHTING — follows camera
+// ═══════════════════════════════════════
+function DynamicLights() {
+  const ref1 = useRef<THREE.PointLight>(null);
+  const ref2 = useRef<THREE.PointLight>(null);
+  const ref3 = useRef<THREE.PointLight>(null);
 
   useFrame((state) => {
-    const chaos = glitchIntensity;
-    mouseSmooth.lerp(mouseTarget, 0.04);
+    const t = scrollProgress;
+    const camPos = useThree.__getState()?.camera?.position || new THREE.Vector3(0, 0, 6);
 
-    // Normal camera
-    const normalX = Math.sin(scrollProgress * Math.PI * 0.5) * 2 + mouseSmooth.x * 0.3;
-    const normalY = Math.cos(scrollProgress * Math.PI * 0.3) * 0.5 - scrollProgress * 1 + mouseSmooth.y * 0.2;
-    const normalZ = 6 + scrollProgress * 2;
-
-    // Glitch camera - goes full chaos
-    const glitchX = (Math.random() - 0.5) * chaos * 8;
-    const glitchY = (Math.random() - 0.5) * chaos * 6;
-    const glitchZ = (Math.random() - 0.5) * chaos * 5;
-
-    const targetX = normalX + glitchX;
-    const targetY = normalY + glitchY;
-    const targetZ = normalZ + glitchZ;
-
-    pos.current.set(targetX, targetY, targetZ);
-    camera.position.lerp(pos.current, 0.05 + chaos * 0.2);
-
-    // FOV goes wild
-    const pc = camera as THREE.PerspectiveCamera;
-    pc.fov = 50 + scrollProgress * 15 + chaos * 30;
-    pc.updateProjectionMatrix();
-
-    // Look target goes crazy
-    const lx = mouseSmooth.x * 0.5 + (Math.random()-0.5) * chaos * 3;
-    const ly = -scrollProgress * 0.5 + (Math.random()-0.5) * chaos * 2;
-    lookAt.current.set(lx, ly, 0);
-
-    if (chaos > 0.5) {
-      camera.lookAt(
-        lx + (Math.random()-0.5) * chaos,
-        ly + (Math.random()-0.5) * chaos,
-        (Math.random()-0.5) * chaos
-      );
-    } else {
-      camera.lookAt(lookAt.current);
+    if (ref1.current) {
+      ref1.current.position.set(camPos.x + 3, camPos.y + 3, camPos.z + 2);
+      ref1.current.intensity = 1.5 + Math.sin(t * Math.PI) * 0.5;
+    }
+    if (ref2.current) {
+      ref2.current.position.set(camPos.x - 4, camPos.y - 1, camPos.z + 1);
+      ref2.current.intensity = 0.8 - t * 0.4;
+    }
+    if (ref3.current) {
+      ref3.current.position.set(camPos.x, camPos.y + 4, camPos.z - 3);
+      ref3.current.intensity = 0.5 + Math.sin(t * Math.PI * 2) * 0.3;
     }
   });
-  return null;
+
+  return (
+    <>
+      <pointLight ref={ref1} position={[3, 3, 5]} intensity={1.5} color="#BFF549" distance={15} />
+      <pointLight ref={ref2} position={[-4, -1, 4]} intensity={0.8} color="#60A5FA" distance={12} />
+      <pointLight ref={ref3} position={[0, 4, -3]} intensity={0.5} color="#FACC15" distance={10} />
+    </>
+  );
 }
 
-// ─── MOUSE LIGHT ───
-function MouseLight() {
-  const ref = useRef<THREE.PointLight>(null);
-  useEffect(() => {
-    const iv = setInterval(() => {
-      if (ref.current) {
-        ref.current.position.set(mouseSmooth.x * 5, mouseSmooth.y * 4, 3);
-        ref.current.intensity = 2 + glitchIntensity * 5; // Brighter when glitching
-      }
-    }, 16);
-    return () => clearInterval(iv);
-  }, []);
-  return <pointLight ref={ref} position={[0, 0, 3]} intensity={2} color="#BFF549" distance={15} />;
-}
-
-// ─── CHAOS BACKGROUND COLOR ───
-function ChaosFog() {
-  const mat = useRef(new THREE.Color('#050510'));
-
-  useFrame(() => {
-    const chaos = glitchIntensity;
-    // Background shifts from dark void to glitch colors
-    const r = 0.02 + chaos * (Math.random() * 0.15);
-    const g = 0.02 + chaos * (Math.random() * 0.1);
-    const b = 0.06 + chaos * (Math.random() * 0.08);
-    mat.current.setRGB(Math.min(r, 0.25), Math.min(g, 0.2), Math.min(b, 0.2));
+// ═══════════════════════════════════════
+// 🌊 FOG — scroll-reactive depth
+// ═══════════════════════════════════════
+function ScrollFog() {
+  useFrame((state) => {
+    const t = scrollProgress;
+    // Fog density based on scroll phase
+    const near = 6 + t * 4;
+    const far = 22 - t * 8;
+    const fog = useThree.__getState()?.scene?.fog as THREE.Fog | undefined;
+    if (fog) {
+      fog.near = Math.max(near, 4);
+      fog.far = Math.max(far, 10);
+    }
   });
-
-  return <fog attach="fog" args={[mat.current, 4, 20]} />;
+  return <fog attach="fog" args={['#050510', 10, 20]} />;
 }
 
-// ════════════════════════════════════════
-// MAIN EXPORT
-// ════════════════════════════════════════
+// ═══════════════════════════════════════
+// 🖼️ MAIN COMPONENT — PARALLAX HERO
+// ═══════════════════════════════════════
 export default function VexelHero() {
   const [ready, setReady] = useState(false);
 
@@ -401,12 +454,15 @@ export default function VexelHero() {
     const update = () => {
       if (!ticking) {
         requestAnimationFrame(() => {
-          scrollProgress = window.scrollY / Math.max(document.documentElement.scrollHeight - window.innerHeight, 1);
+          const scrollY = window.scrollY;
+          const maxScroll = Math.max(document.documentElement.scrollHeight - window.innerHeight, 1);
+          scrollProgress = Math.min(scrollY / maxScroll, 1);
           ticking = false;
         });
         ticking = true;
       }
     };
+
     window.addEventListener('scroll', update, { passive: true });
     update();
     return () => window.removeEventListener('scroll', update);
@@ -420,59 +476,31 @@ export default function VexelHero() {
   if (!ready) return <div style={{ position: 'fixed', inset: 0, background: '#050510' }} />;
 
   return (
-    <div
-      id="vexel-container"
-      style={{ position: 'fixed', inset: 0, background: '#050510', zIndex: 1, transition: 'transform 0.05s linear' }}
-      onPointerMove={onMove}
-    >
-      {/* Glitch overlay layer */}
-      <div
-        id="glitch-overlay"
-        style={{
-          position: 'absolute', inset: 0, pointerEvents: 'none', zIndex: 50,
-          opacity: 0, mixBlendMode: 'screen',
-        }}
-      />
-
-      {/* Scanlines */}
-      <div style={{
-        position: 'absolute', inset: 0, pointerEvents: 'none', zIndex: 40,
-        background: 'repeating-linear-gradient(0deg, transparent, transparent 1px, rgba(0,0,0,0.15) 1px, rgba(0,0,0,0.15) 2px)',
-        opacity: 0.3 + glitchIntensity * 0.5,
-      }} />
-
-      {/* Chromatic aberration overlay at high chaos */}
-      {glitchIntensity > 0.3 && (
-        <div style={{
-          position: 'absolute', inset: 0, pointerEvents: 'none', zIndex: 35,
-          background: `linear-gradient(90deg, 
-            rgba(255,0,0,${glitchIntensity * 0.1}) 0%, 
-            transparent 33%, 
-            rgba(0,255,0,${glitchIntensity * 0.05}) 50%, 
-            transparent 66%, 
-            rgba(0,0,255,${glitchIntensity * 0.1}) 100%)`,
-          mixBlendMode: 'screen',
-        }} />
-      )}
-
+    <div style={{ position: 'fixed', inset: 0, background: '#050510', zIndex: 1 }} onPointerMove={onMove}>
       <Canvas
-        camera={{ position: [0, 0, 6], fov: 50, near: 0.1, far: 60 }}
+        camera={{ position: [0, 0, 6], fov: 45, near: 0.1, far: 60 }}
         dpr={[1, 1.5]}
         gl={{ antialias: true, alpha: false, toneMapping: THREE.ACESFilmicToneMapping, toneMappingExposure: 1.2 }}
       >
-        <ChaosCamera />
-        <MouseLight />
-        <ambientLight intensity={0.04} />
-        <ChaosFog />
+        <ParallaxCamera />
+        <DynamicLights />
+        <ScrollFog />
 
-        <Constellation count={180} />
-        <FloatingShapes />
+        <ScrollConstellation count={180} />
+        <ParallaxWireframes />
       </Canvas>
 
-      {/* Vignette (gets weaker during chaos) */}
+      {/* Vignette overlay */}
       <div style={{
-        position: 'absolute', inset: 0, pointerEvents: 'none', zIndex: 10,
-        background: `radial-gradient(ellipse at 50% 40%, transparent ${45 - glitchIntensity * 20}%, rgba(5,5,16,${0.7 - glitchIntensity * 0.3}) 100%)`,
+        position: 'absolute', inset: 0, pointerEvents: 'none',
+        background: 'radial-gradient(ellipse at 50% 40%, transparent 45%, rgba(5,5,16,0.7) 100%)',
+      }} />
+
+      {/* Scanlines */}
+      <div style={{
+        position: 'absolute', inset: 0, pointerEvents: 'none',
+        background: 'repeating-linear-gradient(0deg, transparent, transparent 1px, rgba(0,0,0,0.08) 1px, rgba(0,0,0,0.08) 2px)',
+        opacity: 0.2,
       }} />
     </div>
   );
