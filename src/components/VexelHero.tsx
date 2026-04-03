@@ -2,6 +2,7 @@
 
 import { useRef, useMemo, useEffect, useState, useCallback } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
+import { useThree } from '@react-three/fiber';
 import * as THREE from 'three';
 
 // Shared state
