@@ -68,13 +68,13 @@ function FloatingShards({ color='#FF6600', count=50 }:{color?:string;count?:numb
       ref.current[i].rotation.x+=.01;ref.current[i].rotation.y+=.015;}});});
   return <group ref={group}>{data.map((d,i)=>(
     <mesh key={i} ref={el=>{ref.current[i]=el}} scale={d.scale}>
-      {i%3===0?<tetrahedronGeometry args={[1,0]/>:i%3===1?<octahedronGeometry args={[1,0]} />:<boxGeometry args={[1,1,.2]} />}
+      {i%3===0?<tetrahedronGeometry args={[1,0]} />:i%3===1?<octahedronGeometry args={[1,0]} />:<boxGeometry args={[1,1,.2]} />}
       <meshBasicMaterial color={color} transparent opacity={.3} blending={THREE.AdditiveBlending} depthWrite={false}/></mesh>
   ))}</group>;
 }
 
 function PostFX() {
-  return <EffectComposer disableNormalPass>
+  return <EffectComposer enableNormalPass={false}>
     <Bloom intensity={1.5} luminanceThreshold={.85} luminanceSmoothing={.95} mipmapBlur radius={.4}/>
     <ChromaticAberration offset={new THREE.Vector2(.0015,.0015)}/>
     <Vignette eskil={false} offset={.15} darkness={.4}/>
