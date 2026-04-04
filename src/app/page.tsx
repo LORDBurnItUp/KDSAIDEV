@@ -7,6 +7,7 @@ import * as THREE from 'three';
 const SplineScene = dynamic(() => import('@/components/SplineScene'), { ssr: false });
 const ScrollCanvas = dynamic(() => import('@/components/ScrollCanvas'), { ssr: false });
 const AmbientSound = dynamic(() => import('@/components/AmbientSound'), { ssr: false });
+const VideoBackground = dynamic(() => import('@/components/VideoBackground'), { ssr: false });
 const CoreIntelligenceSphere = dynamic(() => import('@/components/CoreIntelligenceSphere'), { ssr: false });
 
 // ════════════════════════════════════════════════════════
@@ -25,10 +26,10 @@ const mouseVec = { x: 0, y: 0 };
 // SCROLL SECTIONS — 4 beats (Antigravity scrollytelling)
 // ════════════════════════════════════════════════════════
 const sections = [
-  { label: '// KDS AI', title: 'Design meets\nintelligence in 3D space.', body: 'A modern framework built for AI brands — minimal, dynamic, and deeply interactive. Make your presence feel intelligent from the very first pixel.', cta: 'EXPLORE KDS', gradient: ['#FF6600', '#FF4500'], glow: 'rgba(255,102,0,0.3)', align: 'center' as const, features: null },
-  { label: '// ABOUT', title: "KDS isn't a tool—\nit's an autonomous AI.", body: 'It interprets data, form, and function to generate immersive web experiences through motion, geometry, and spatial intelligence. KDS doesn\'t just build — it thinks in design.', cta: null, gradient: ['#565656', '#707070'], glow: 'rgba(112,112,112,0.2)', align: 'left' as const, features: [{ icon: '●', text: 'Modular\nAI Components' }, { icon: '│', text: 'Adaptive\nWeb Architecture' }, { icon: '×', text: 'Realtime\n3D Interactions' }, { icon: '↗', text: 'Minimum Effort\nMaximum Impact' }] },
-  { label: '// FEATURES', title: "KDS isn't just smart.\nIt learns, evolves, adapts.", body: 'Scroll through the KDS universe — each section reveals a new chapter of our AI-powered platform.', cta: null, gradient: ['#3377CC', '#44CC77'], glow: 'rgba(51,119,204,0.2)', align: 'right' as const, features: null },
-  { label: '// GET STARTED', title: 'Launch with\nKDS', body: null, cta: 'ENTER KDS →', gradient: ['#BFF549', '#BFF549'], glow: 'rgba(191,245,73,0.3)', align: 'center' as const, features: null, link: '/community' },
+  { label: '// KDS AI', title: 'Design meets\nintelligence in 3D space.', body: 'A modern framework built for AI brands — minimal, dynamic, and deeply interactive. Make your presence feel intelligent from the very first pixel.', cta: 'EXPLORE KDS', gradient: ['#FF6600', '#FF4500'], videos: ['/videos/kds-clip-1.mp4', '/videos/kds-clip-2.mp4', '/videos/kds-clip-3.mp4', '/videos/kds-clip-4.mp4', '/videos/kds-clip-5.mp4', '/videos/kds-clip-6.mp4', '/videos/kds-clip-7.mp4'], glow: 'rgba(255,102,0,0.3)', align: 'center' as const, features: null },
+  { label: '// ABOUT', title: "KDS isn't a tool—\nit's an autonomous AI.", body: 'It interprets data, form, and function to generate immersive web experiences through motion, geometry, and spatial intelligence. KDS doesn\'t just build — it thinks in design.', cta: null, gradient: ['#565656', '#707070'], videos: ['/videos/kds-clip-8.mp4', '/videos/kds-clip-9.mp4', '/videos/kds-clip-10.mp4', '/videos/kds-clip-11.mp4', '/videos/kds-clip-12.mp4', '/videos/kds-clip-13.mp4', '/videos/kds-clip-14.mp4'], glow: 'rgba(112,112,112,0.2)', align: 'left' as const, features: [{ icon: '●', text: 'Modular\nAI Components' }, { icon: '│', text: 'Adaptive\nWeb Architecture' }, { icon: '×', text: 'Realtime\n3D Interactions' }, { icon: '↗', text: 'Minimum Effort\nMaximum Impact' }] },
+  { label: '// FEATURES', title: "KDS isn't just smart.\nIt learns, evolves, adapts.", body: 'Scroll through the KDS universe — each section reveals a new chapter of our AI-powered platform.', cta: null, gradient: ['#3377CC', '#44CC77'], videos: ['/videos/kds-clip-15.mp4', '/videos/kds-clip-16.mp4', '/videos/kds-clip-17.mp4', '/videos/kds-clip-18.mp4', '/videos/kds-clip-19.mp4', '/videos/kds-clip-20.mp4', '/videos/kds-clip-21.mp4'], glow: 'rgba(51,119,204,0.2)', align: 'right' as const, features: null },
+  { label: '// GET STARTED', title: 'Launch with\nKDS', body: null, cta: 'ENTER KDS →', gradient: ['#BFF549', '#BFF549'], videos: ['/videos/kds-clip-22.mp4', '/videos/kds-clip-23.mp4', '/videos/kds-clip-24.mp4', '/videos/kds-clip-25.mp4', '/videos/kds-clip-26.mp4', '/videos/kds-clip-27.mp4', '/videos/kds-clip-28.mp4'], glow: 'rgba(191,245,73,0.3)', align: 'center' as const, features: null, link: '/community' },
 ];
 
 // ════════════════════════════════════════════════════════
@@ -144,6 +145,7 @@ export default function HomePage() {
     {loaded && <>
       {/* ─── 3D BACKGROUND (Spline OR Image Sequence OR fallback) ─── */}
       <div style={{ position: 'fixed', inset: 0, zIndex: 1, background: '#050505', transition: 'background .5s' }} onPointerMove={onMove}>
+        <VideoBackground section={activeIdx} videos={ch.videos} />
         {USE_SPLINE && <SplineScene
           url={SPLINE_URL}
           className=""
