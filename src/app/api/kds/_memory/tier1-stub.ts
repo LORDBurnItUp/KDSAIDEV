@@ -1,0 +1,1 @@
+export const Tier1Memory = { saveFact: () => {}, getCoreMemory: () => [], saveMessage: () => {}, getSummary: () => null, getRecentMessages: () => [], getMessageCount: () => 0, saveSummary: () => {}, pruneMessages: () => {}, getFactsByCategory: () => [], deleteFact: () => {}, updateFact: () => {} };

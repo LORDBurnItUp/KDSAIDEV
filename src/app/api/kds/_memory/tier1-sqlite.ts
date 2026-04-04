@@ -107,4 +107,4 @@ export const Tier1Memory = {
   },
 };
 
-export type { Tier1Memory };
+
